@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ incident.title }} - SecureFlow{% endblock %}
+
+{% block content %}
+<!-- En-tête de l'incident -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div style="flex: 1;">
+            <h1>{{ incident.title }}</h1>
+            <p style="color: var(--text-gray); margin: 1rem 0;">{{ incident.description }}</p>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem;">
+                <span class="badge badge-primary">{{ incident.get_incident_type_display }}</span>
+                
+                {% if incident.severity == 'critical' %}
+                    <span class="badge badge-danger">🔴 {{ incident.get_severity_display }}</span>
+                {% elif incident.severity == 'high' %}
+                    <span class="badge badge-warning">🟠 {{ incident.get_severity_display }}</span>
+                {% elif incident.severity == 'medium' %}
+                    <span class="badge badge-info">🟡 {{ incident.get_severity_display }}</span>
+                {% else %}
+                    <span class="badge badge-success">🟢 {{ incident.get_severity_display }}</span>
+                {% endif %}
+                
+                {% if incident.status == 'new' %}
+                    <span class="badge badge-warning">Nouveau</span>
+                {% elif incident.status == 'in_progress' %}
+                    <span class="badge badge-info">En cours</span>
+                {% elif incident.status == 'resolved' %}
+                    <span class="badge badge-success">Résolu</span>
+                {% endif %}
+                
+                {% if incident.auto_playbook_triggered %}
+                    <span class="badge badge-success">✓ Playbook déclenché</span>
+                {% endif %}
+                
+                {% if incident.is_enriched %}
+                    <span class="badge badge-accent">✓ Enrichi</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <a href="{% url 'incidents:list' %}" class="btn btn-danger">
+            ← Retour
+        </a>
+    </div>
+    
+    <!-- Informations détaillées -->
+    <div class="grid grid-4" style="margin-top: 2rem;">
+        <div>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">IP Source</p>
+            <p style="color: var(--text-light); font-weight: 600;">
+                <code style="background: var(--bg-darker); padding: 0.25rem 0.5rem; border-radius: 5px;">
+                    {{ incident.source_ip|default:"-" }}
+                </code>
+            </p>
+        </div>
+        <div>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">IP Cible</p>
+            <p style="color: var(--text-light); font-weight: 600;">
+                <code style="background: var(--bg-darker); padding: 0.25rem 0.5rem; border-radius: 5px;">
+                    {{ incident.target_ip|default:"-" }}
+                </code>
+            </p>
+        </div>
+        <div>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Port</p>
+            <p style="color: var(--text-light); font-weight: 600;">{{ incident.port|default:"-" }}</p>
+        </div>
+        <div>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Détecté le</p>
+            <p style="color: var(--text-light); font-weight: 600;">{{ incident.detected_at|date:"d/m/Y H:i:s" }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Log brut -->
+{% if incident.raw_log %}
+<div class="card">
+    <h2>📋 Log Brut</h2>
+    <pre style="background: var(--bg-darker); padding: 1.5rem; border-radius: 10px; overflow-x: auto; color: var(--text-gray); font-size: 0.9rem;"><code>{{ incident.raw_log|safe }}</code></pre>
+</div>
+{% endif %}
+
+<!-- Données Threat Intelligence -->
+{% if incident.threat_intel_data %}
+<div class="card">
+    <h2>🔍 Threat Intelligence</h2>
+    <div style="background: var(--bg-darker); padding: 1.5rem; border-radius: 10px;">
+        {% for key, value in incident.threat_intel_data.items %}
+        <div style="margin-bottom: 1rem;">
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.25rem;">{{ key }}</p>
+            <p style="color: var(--text-light);">{{ value }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Exécutions de playbooks -->
+{% if executions %}
+<div class="card">
+    <h2>⚡ Playbooks Exécutés</h2>
+    <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;">
+        {% for execution in executions %}
+        <div style="background: var(--bg-darker); padding: 1.5rem; border-radius: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="color: var(--accent); margin: 0;">{{ execution.playbook.name }}</h3>
+                {% if execution.status == 'success' %}
+                    <span class="badge badge-success">✓ Succès</span>
+                {% elif execution.status == 'failed' %}
+                    <span class="badge badge-danger">✗ Échec</span>
+                {% elif execution.status == 'running' %}
+                    <span class="badge badge-info">⏳ En cours</span>
+                {% else %}
+                    <span class="badge badge-warning">{{ execution.get_status_display }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="grid grid-3">
+                <div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Actions exécutées</p>
+                    <p style="color: var(--text-light); font-weight: 600;">{{ execution.actions_executed }}</p>
+                </div>
+                <div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Actions échouées</p>
+                    <p style="color: var(--text-light); font-weight: 600;">{{ execution.actions_failed }}</p>
+                </div>
+                <div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Démarré à</p>
+                    <p style="color: var(--text-light); font-weight: 600;">{{ execution.started_at|date:"H:i:s" }}</p>
+                </div>
+            </div>
+            
+            {% if execution.logs %}
+            <div style="margin-top: 1rem;">
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">📝 Logs :</p>
+                <div style="background: var(--bg-dark); padding: 1rem; border-radius: 5px; max-height: 200px; overflow-y: auto;">
+                    {% for log in execution.logs %}
+                    <p style="color: var(--text-gray); font-size: 0.85rem; margin: 0.25rem 0;">
+                        [{{ log.level|upper }}] {{ log.message }}
+                    </p>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

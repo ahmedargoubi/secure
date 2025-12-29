@@ -1,0 +1,564 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - SOAR Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #cf0906;
+            --primary-dark: #a00704;
+            --primary-light: #ff2420;
+            --primary-glow: rgba(207, 9, 6, 0.3);
+            
+            --bg-dark: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --bg-input: #16213e;
+            
+            --text-light: #ffffff;
+            --text-gray: #a0a4b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-light);
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* ===== BACKGROUND IMAGE WITH GRADIENT ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url("{% static 'images/soar.jpg' %}");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            z-index: -2;
+        }
+
+        /* ===== ANIMATED WAVES (par-dessus l'image) ===== */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .wave {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.6;
+            animation: float 15s ease-in-out infinite;
+        }
+
+        .wave1 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+            top: -10%;
+            right: -10%;
+            animation-delay: 0s;
+        }
+
+        .wave2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(207, 9, 6, 0.25) 0%, transparent 70%);
+            bottom: -10%;
+            left: -10%;
+            animation-delay: 2s;
+        }
+
+        .wave3 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(255, 36, 32, 0.2) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            33% {
+                transform: translate(30px, -30px) scale(1.1);
+            }
+            66% {
+                transform: translate(-20px, 20px) scale(0.9);
+            }
+        }
+
+        /* ===== AUTH CONTAINER ===== */
+        .auth-container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        /* ===== GLASSMORPHISM CARD ===== */
+        .auth-card {
+            background: rgba(26, 26, 46, 0.7);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-radius: 25px;
+            padding: 3rem 2.5rem;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.6),
+                0 0 100px rgba(207, 9, 6, 0.1),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(207, 9, 6, 0.3);
+            position: relative;
+            overflow: hidden;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        /* Bordure supérieure animée */
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light), var(--primary));
+            background-size: 200% 100%;
+            animation: gradientMove 3s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Effet de lumière interne */
+        .auth-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(207, 9, 6, 0.05) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== USER ICON ===== */
+        .user-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            font-size: 2.5rem;
+            color: var(--primary);
+            background: rgba(207, 9, 6, 0.15);
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 0 40px var(--primary-glow),
+                inset 0 0 20px rgba(207, 9, 6, 0.1);
+            animation: pulse-icon 3s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Cercles concentriques autour de l'icône */
+        .user-icon::before,
+        .user-icon::after {
+            content: '';
+            position: absolute;
+            inset: -15px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            opacity: 0;
+            animation: ripple 2s ease-out infinite;
+        }
+
+        .user-icon::after {
+            animation-delay: 1s;
+        }
+
+        @keyframes pulse-icon {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 40px var(--primary-glow), inset 0 0 20px rgba(207, 9, 6, 0.1);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 60px var(--primary-glow), inset 0 0 30px rgba(207, 9, 6, 0.2);
+            }
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* ===== TITLES ===== */
+        .auth-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(207, 9, 6, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .auth-subtitle {
+            text-align: center;
+            color: var(--text-gray);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ===== INPUT GROUPS ===== */
+        .input-group-custom {
+            position: relative;
+            margin-bottom: 1.5rem;
+            z-index: 2;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-size: 1.1rem;
+            z-index: 3;
+            filter: drop-shadow(0 0 5px var(--primary-glow));
+        }
+
+        .input-group-custom input {
+            width: 100%;
+            padding: 15px 20px 15px 55px;
+            background: rgba(22, 33, 62, 0.6);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            color: var(--text-light);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .input-group-custom input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(22, 33, 62, 0.8);
+            box-shadow: 
+                0 0 20px var(--primary-glow),
+                inset 0 0 10px rgba(207, 9, 6, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .input-group-custom input::placeholder {
+            color: var(--text-gray);
+        }
+
+        /* ===== FORM OPTIONS ===== */
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            color: var(--text-gray);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .remember-me input {
+            margin-right: 0.5rem;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .forgot-password:hover {
+            color: var(--primary-light);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        /* ===== BUTTON WITH WAVE EFFECT ===== */
+        .btn-auth {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            border-radius: 50px;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 
+                0 10px 30px var(--primary-glow),
+                inset 0 0 20px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            z-index: 2;
+        }
+
+        /* Effet de vague au survol */
+        .btn-auth::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-auth:hover::before {
+            width: 500px;
+            height: 500px;
+        }
+
+        .btn-auth:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 15px 40px var(--primary-glow),
+                inset 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-auth span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-auth i {
+            transition: transform 0.3s;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-auth:hover i {
+            transform: translateX(5px);
+        }
+
+        /* ===== AUTH FOOTER ===== */
+        .auth-footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: var(--text-gray);
+            position: relative;
+            z-index: 2;
+        }
+
+        .auth-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .auth-footer a:hover {
+            color: var(--primary-light);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        /* ===== ALERTS ===== */
+        .alert {
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            animation: slideDown 0.3s ease-out;
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-danger {
+            background: rgba(207, 9, 6, 0.2);
+            border: 1px solid var(--primary);
+            color: var(--text-light);
+            box-shadow: 0 5px 20px rgba(207, 9, 6, 0.2);
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 0, 0.15);
+            border: 1px solid #00ff00;
+            color: var(--text-light);
+            box-shadow: 0 5px 20px rgba(0, 255, 0, 0.2);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 576px) {
+            .auth-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .auth-title {
+                font-size: 1.75rem;
+            }
+
+            .user-icon {
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
+            }
+
+            .wave1, .wave2, .wave3 {
+                filter: blur(60px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Waves (par-dessus l'image de fond) -->
+    <div class="animated-bg">
+        <div class="wave wave1"></div>
+        <div class="wave wave2"></div>
+        <div class="wave wave3"></div>
+    </div>
+
+    <!-- Auth Container -->
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- User Icon -->
+            <div class="user-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+
+            <!-- Title -->
+            <h2 class="auth-title">Bienvenue</h2>
+            <p class="auth-subtitle">Connectez-vous à votre plateforme SOAR</p>
+
+            <!-- Alerts -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Login Form -->
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Username -->
+                <div class="input-group-custom">
+                    <i class="fas fa-user input-icon"></i>
+                    <input 
+                        type="text" 
+                        name="username" 
+                        placeholder="Nom d'utilisateur"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+
+                <!-- Password -->
+                <div class="input-group-custom">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input 
+                        type="password" 
+                        name="password" 
+                        placeholder="Mot de passe"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <!-- Form Options -->
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember">
+                        Se souvenir de moi
+                    </label>
+                    <a href="#" class="forgot-password">Mot de passe oublié ?</a>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-auth">
+                    <span>Se connecter</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- Footer -->
+            <div class="auth-footer">
+                Pas encore de compte ? <a href="{% url 'accounts:register' %}">Créer un compte</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

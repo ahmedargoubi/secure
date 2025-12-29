@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_edit %}Éditer{% else %}Ajouter{% endif %} Action - SecureFlow{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <h1>{% if is_edit %}✏️ Éditer l'Action{% else %}➕ Ajouter une Action{% endif %}</h1>
+    <p style="color: var(--text-gray); margin-bottom: 0.5rem;">
+        Playbook : <strong>{{ playbook.name }}</strong>
+    </p>
+    <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.9rem;">
+        Les actions seront exécutées dans l'ordre défini
+    </p>
+    
+    <form method="post" id="action-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            {{ form.action_type.label_tag }}
+            {{ form.action_type }}
+            {% if form.action_type.errors %}
+                <span style="color: var(--primary-light); font-size: 0.9rem;">{{ form.action_type.errors.0 }}</span>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.order.label_tag }}
+            {{ form.order }}
+            <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
+                Les actions avec un ordre inférieur s'exécutent en premier
+            </small>
+            {% if form.order.errors %}
+                <span style="color: var(--primary-light); font-size: 0.9rem;">{{ form.order.errors.0 }}</span>
+            {% endif %}
+        </div>
+        
+        <!-- Paramètres spécifiques pour Email -->
+        <div id="email-params" style="display: none;">
+            <h3 style="color: var(--accent); margin: 2rem 0 1rem;">📧 Paramètres Email</h3>
+            
+            <div class="form-group">
+                {{ form.email_recipient.label_tag }}
+                {{ form.email_recipient }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.email_subject.label_tag }}
+                {{ form.email_subject }}
+            </div>
+        </div>
+        
+        <!-- Paramètres spécifiques pour Blocage IP -->
+        <div id="block-ip-params" style="display: none;">
+            <h3 style="color: var(--accent); margin: 2rem 0 1rem;">🚫 Paramètres Blocage IP</h3>
+            
+            <div class="form-group">
+                {{ form.ip_to_block.label_tag }}
+                {{ form.ip_to_block }}
+                <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
+                    Laissez vide pour bloquer l'IP source de l'incident
+                </small>
+            </div>
+        </div>
+        
+        <!-- Paramètres spécifiques pour Ticket -->
+        <div id="ticket-params" style="display: none;">
+            <h3 style="color: var(--accent); margin: 2rem 0 1rem;">🎫 Paramètres Ticket</h3>
+            
+            <div class="form-group">
+                {{ form.ticket_title.label_tag }}
+                {{ form.ticket_title }}
+            </div>
+        </div>
+        
+        <!-- Paramètres Threat Intelligence -->
+        <div id="threat-params" style="display: none;">
+            <h3 style="color: var(--accent); margin: 2rem 0 1rem;">🔍 Threat Intelligence</h3>
+            <div style="background: var(--bg-darker); padding: 1rem; border-radius: 10px;">
+                <p style="color: var(--text-gray);">
+                    Cette action interrogera l'API VirusTotal pour enrichir les données de l'incident.
+                </p>
+            </div>
+        </div>
+        
+        <div class="form-group" style="display: flex; align-items: center; gap: 1rem; margin-top: 2rem;">
+            {{ form.is_active }}
+            <label for="{{ form.is_active.id_for_label }}" style="margin: 0; cursor: pointer;">
+                {{ form.is_active.label }}
+            </label>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">
+                {% if is_edit %}💾 Enregistrer{% else %}✅ Ajouter l'Action{% endif %}
+            </button>
+            <a href="{% url 'playbooks:detail' playbook.id %}" class="btn btn-danger">
+                ❌ Annuler
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+// Afficher/masquer les paramètres selon le type d'action
+document.addEventListener('DOMContentLoaded', function() {
+    const actionTypeSelect = document.getElementById('action_type_select');
+    const emailParams = document.getElementById('email-params');
+    const blockIpParams = document.getElementById('block-ip-params');
+    const ticketParams = document.getElementById('ticket-params');
+    const threatParams = document.getElementById('threat-params');
+    
+    function toggleParams() {
+        const selectedType = actionTypeSelect.value;
+        
+        // Masquer tous les paramètres
+        emailParams.style.display = 'none';
+        blockIpParams.style.display = 'none';
+        ticketParams.style.display = 'none';
+        threatParams.style.display = 'none';
+        
+        // Afficher les paramètres correspondants
+        if (selectedType === 'send_email') {
+            emailParams.style.display = 'block';
+        } else if (selectedType === 'block_ip') {
+            blockIpParams.style.display = 'block';
+        } else if (selectedType === 'create_ticket') {
+            ticketParams.style.display = 'block';
+        } else if (selectedType === 'enrich_threat') {
+            threatParams.style.display = 'block';
+        }
+    }
+    
+    actionTypeSelect.addEventListener('change', toggleParams);
+    toggleParams(); // Appeler au chargement initial
+});
+</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+[
+  {
+    "timestamp": "2025-12-19T10:27:19.413926Z",
+    "event_type": "port_scan",
+    "source_ip": "192.168.163.142",
+    "destination_ip": "192.168.163.135",
+    "severity": "medium",
+    "description": "Port scan detected from 192.168.163.142",
+    "details": {
+      "port": "256",
+      "count": 6
+    }
+  }
+]

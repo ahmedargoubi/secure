@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ playbook.name }} - SecureFlow{% endblock %}
+
+{% block content %}
+<!-- En-tête du playbook -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+        <div style="flex: 1;">
+            <h1>{{ playbook.name }}</h1>
+            <p style="color: var(--text-gray); margin: 1rem 0;">{{ playbook.description }}</p>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem;">
+                <span class="badge badge-primary">{{ playbook.get_trigger_display }}</span>
+                {% if playbook.is_active %}
+                    <span class="badge badge-success">✓ Actif</span>
+                {% else %}
+                    <span class="badge badge-danger">✗ Inactif</span>
+                {% endif %}
+                <span class="badge badge-info">{{ action_count }} action(s)</span>
+                <span class="badge badge-info">{{ playbook.execution_count }} exécution(s)</span>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{% url 'playbooks:edit' playbook.id %}" class="btn btn-accent">
+                ✏️ Éditer
+            </a>
+            <a href="{% url 'playbooks:toggle' playbook.id %}" class="btn btn-primary">
+                {% if playbook.is_active %}⏸️ Désactiver{% else %}▶️ Activer{% endif %}
+            </a>
+            <a href="{% url 'playbooks:list' %}" class="btn btn-danger">
+                ← Retour
+            </a>
+        </div>
+    </div>
+    
+    <!-- Informations -->
+    <div class="grid grid-3">
+        <div>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Créé par</p>
+            <p style="color: var(--text-light); font-weight: 600;">{{ playbook.created_by.username }}</p>
+        </div>
+        <div>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Date de création</p>
+            <p style="color: var(--text-light); font-weight: 600;">{{ playbook.created_at|date:"d/m/Y H:i" }}</p>
+        </div>
+        <div>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Dernière modification</p>
+            <p style="color: var(--text-light); font-weight: 600;">{{ playbook.updated_at|date:"d/m/Y H:i" }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Actions du playbook -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h2>🎯 Actions ({{ action_count }})</h2>
+        <a href="{% url 'playbooks:action_create' playbook.id %}" class="btn btn-primary">
+            + Ajouter une Action
+        </a>
+    </div>
+    
+    {% if actions %}
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for action in actions %}
+        <div style="background: var(--bg-darker); border-radius: 15px; padding: 1.5rem; border: 2px solid {% if action.is_active %}var(--accent){% else %}rgba(255,255,255,0.1){% endif %};">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <span class="badge badge-primary">#{{ action.order }}</span>
+                        <h3 style="margin: 0; color: var(--text-light); font-size: 1.3rem;">
+                            {{ action.get_action_type_display }}
+                        </h3>
+                        {% if action.is_active %}
+                            <span class="badge badge-success">✓ Active</span>
+                        {% else %}
+                            <span class="badge badge-danger">✗ Inactive</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Paramètres de l'action -->
+                    {% if action.parameters %}
+                    <div style="background: var(--bg-dark); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">📋 Paramètres :</p>
+                        {% for key, value in action.parameters.items %}
+                        <p style="color: var(--text-gray); margin: 0.25rem 0;">
+                            <strong>{{ key }}:</strong> {{ value }}
+                        </p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div style="display: flex; gap: 0.5rem;">
+                    <a href="{% url 'playbooks:action_edit' action.id %}" class="btn btn-accent" style="padding: 0.5rem 1rem;">
+                        ✏️ Éditer
+                    </a>
+                    <a href="{% url 'playbooks:action_toggle' action.id %}" class="btn btn-primary" style="padding: 0.5rem 1rem;">
+                        {% if action.is_active %}⏸️{% else %}▶️{% endif %}
+                    </a>
+                    <a href="{% url 'playbooks:action_delete' action.id %}" class="btn btn-danger" style="padding: 0.5rem 1rem;">
+                        🗑️
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
+        <h3 style="color: var(--text-gray); margin-bottom: 1rem;">Aucune action configurée</h3>
+        <p style="margin-bottom: 2rem;">Ajoutez des actions pour automatiser votre playbook.</p>
+        <a href="{% url 'playbooks:action_create' playbook.id %}" class="btn btn-primary">
+            + Ajouter la première action
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Historique des exécutions -->
+{% if executions %}
+<div class="card">
+    <h2>📊 Dernières Exécutions</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Statut</th>
+                <th>Actions Exécutées</th>
+                <th>Actions Échouées</th>
+                <th>Durée</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for execution in executions %}
+            <tr>
+                <td>{{ execution.started_at|date:"d/m/Y H:i:s" }}</td>
+                <td>
+                    {% if execution.status == 'success' %}
+                        <span class="badge badge-success">Succès</span>
+                    {% elif execution.status == 'failed' %}
+                        <span class="badge badge-danger">Échec</span>
+                    {% elif execution.status == 'running' %}
+                        <span class="badge badge-info">En cours</span>
+                    {% else %}
+                        <span class="badge badge-warning">{{ execution.get_status_display }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ execution.actions_executed }}</td>
+                <td>{{ execution.actions_failed }}</td>
+                <td>
+                    {% if execution.completed_at %}
+                        -
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Playbooks - SecureFlow{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1>📚 Gestion des Playbooks</h1>
+            <p style="color: var(--text-gray); margin-top: 0.5rem;">
+                Automatisez vos réponses aux incidents de sécurité
+            </p>
+        </div>
+        <a href="{% url 'playbooks:create' %}" class="btn btn-primary">
+            + Créer un Playbook
+        </a>
+    </div>
+    
+    <!-- Statistiques -->
+    <div class="grid grid-3" style="margin-bottom: 2rem;">
+        <div class="stat-card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">
+            <h3>{{ total_playbooks }}</h3>
+            <p>Total Playbooks</p>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, var(--success) 0%, #00a040 100%);">
+            <h3>{{ active_playbooks }}</h3>
+            <p>Playbooks Actifs</p>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);">
+            <h3>{{ total_playbooks|add:"-"|add:active_playbooks }}</h3>
+            <p>Playbooks Inactifs</p>
+        </div>
+    </div>
+    
+    <!-- Liste des playbooks -->
+    {% if playbooks %}
+    <table>
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Déclencheur</th>
+                <th>Actions</th>
+                <th>Exécutions</th>
+                <th>Statut</th>
+                <th>Créé le</th>
+                <th>Options</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for playbook in playbooks %}
+            <tr>
+                <td>
+                    <a href="{% url 'playbooks:detail' playbook.id %}" style="color: var(--accent); text-decoration: none; font-weight: 600;">
+                        {{ playbook.name }}
+                    </a>
+                </td>
+                <td>{{ playbook.get_trigger_display }}</td>
+                <td>
+                    <span class="badge badge-info">{{ playbook.actions.count }} action(s)</span>
+                </td>
+                <td>{{ playbook.execution_count }}</td>
+                <td>
+                    {% if playbook.is_active %}
+                        <span class="badge badge-success">✓ Actif</span>
+                    {% else %}
+                        <span class="badge badge-danger">✗ Inactif</span>
+                    {% endif %}
+                </td>
+                <td>{{ playbook.created_at|date:"d/m/Y H:i" }}</td>
+                <td>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="{% url 'playbooks:edit' playbook.id %}" class="btn btn-accent" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                            ✏️ Éditer
+                        </a>
+                        <a href="{% url 'playbooks:toggle' playbook.id %}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                            {% if playbook.is_active %}⏸️ Désactiver{% else %}▶️ Activer{% endif %}
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">📚</div>
+        <h3 style="color: var(--text-gray); margin-bottom: 1rem;">Aucun playbook créé</h3>
+        <p style="margin-bottom: 2rem;">Créez votre premier playbook pour automatiser vos réponses aux incidents.</p>
+        <a href="{% url 'playbooks:create' %}" class="btn btn-primary">
+            + Créer mon premier playbook
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

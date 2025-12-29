@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Simuler un Incident - SecureFlow{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <h1>🎭 Simuler un Incident de Test</h1>
+    <p style="color: var(--text-gray); margin-bottom: 2rem;">
+        Créez un incident simulé pour tester vos playbooks automatisés
+    </p>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            {{ form.scenario.label_tag }}
+            {{ form.scenario }}
+        </div>
+        
+        <div class="form-group">
+            {{ form.source_ip.label_tag }}
+            {{ form.source_ip }}
+            <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
+                Adresse IP fictive pour la simulation
+            </small>
+        </div>
+        
+        <div class="form-group">
+            {{ form.severity.label_tag }}
+            {{ form.severity }}
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">
+                ▶️ Lancer la Simulation
+            </button>
+            <a href="{% url 'incidents:list' %}" class="btn btn-danger">
+                ❌ Annuler
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Informations sur les scénarios -->
+<div class="card" style="max-width: 800px; margin: 2rem auto;">
+    <h2>📖 Scénarios de Test</h2>
+    
+    <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1.5rem;">
+        <!-- Scénario 1 -->
+        <div style="background: var(--bg-darker); padding: 1.5rem; border-radius: 10px; border-left: 4px solid var(--primary);">
+            <h3 style="color: var(--primary); margin-bottom: 0.5rem;">🚨 IP Suspecte</h3>
+            <p style="color: var(--text-gray); margin-bottom: 1rem;">
+                Simule une connexion depuis une adresse IP potentiellement malveillante.
+            </p>
+            <div style="background: var(--bg-dark); padding: 1rem; border-radius: 5px;">
+                <p style="color: var(--accent); font-size: 0.9rem; margin: 0;">
+                    ✓ Déclenche les playbooks de type "IP Suspecte"<br>
+                    ✓ Actions possibles : Blocage IP, Enrichissement Threat Intel
+                </p>
+            </div>
+        </div>
+        
+        <!-- Scénario 2 -->
+        <div style="background: var(--bg-darker); padding: 1.5rem; border-radius: 10px; border-left: 4px solid var(--warning);">
+            <h3 style="color: var(--warning); margin-bottom: 0.5rem;">🔐 Échecs d'Authentification</h3>
+            <p style="color: var(--text-gray); margin-bottom: 1rem;">
+                Simule 8 tentatives de connexion échouées en 2 minutes (attaque par force brute).
+            </p>
+            <div style="background: var(--bg-dark); padding: 1rem; border-radius: 5px;">
+                <p style="color: var(--accent); font-size: 0.9rem; margin: 0;">
+                    ✓ Déclenche les playbooks "Échecs d'authentification"<br>
+                    ✓ Actions possibles : Blocage IP, Notification email, Création ticket
+                </p>
+            </div>
+        </div>
+        
+        <!-- Scénario 3 -->
+        <div style="background: var(--bg-darker); padding: 1.5rem; border-radius: 10px; border-left: 4px solid var(--danger);">
+            <h3 style="color: var(--danger); margin-bottom: 0.5rem;">🔍 Scan de Ports</h3>
+            <p style="color: var(--text-gray); margin-bottom: 1rem;">
+                Simule un scan de 50 ports différents (tentative de reconnaissance réseau).
+            </p>
+            <div style="background: var(--bg-dark); padding: 1rem; border-radius: 5px;">
+                <p style="color: var(--accent); font-size: 0.9rem; margin: 0;">
+                    ✓ Déclenche les playbooks "Scan de ports"<br>
+                    ✓ Actions possibles : Blocage IP immédiat, Alerte critique
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Avertissement -->
+<div class="card" style="max-width: 800px; margin: 2rem auto; border: 2px solid var(--accent);">
+    <h3 style="color: var(--accent); margin-bottom: 1rem;">💡 Conseil</h3>
+    <p style="color: var(--text-gray); line-height: 1.8;">
+        Avant de simuler un incident, assurez-vous d'avoir créé et activé au moins un playbook 
+        correspondant au type d'incident que vous voulez tester. Les incidents sans playbook 
+        actif ne déclencheront aucune action automatique.
+    </p>
+    <a href="{% url 'playbooks:list' %}" class="btn btn-accent" style="margin-top: 1rem;">
+        📚 Voir mes Playbooks
+    </a>
+</div>
+{% endblock %}

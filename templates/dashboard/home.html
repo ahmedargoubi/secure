@@ -1,0 +1,1006 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - SOAR Platform{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+    :root {
+        --primary: #cf0906;
+        --primary-dark: #a00704;
+        --primary-light: #ff2420;
+        --primary-glow: rgba(207, 9, 6, 0.3);
+        
+        --bg-dark: #0f0f1a;
+        --bg-card: #1a1a2e;
+        --bg-input: #16213e;
+        
+        --text-light: #ffffff;
+        --text-gray: #a0a4b8;
+        
+        --accent: #00d9ff;
+        --success: #00ff88;
+        --warning: #ffa500;
+        --danger: #ff006e;
+    }
+
+    /* ===== ANIMATED BACKGROUND ===== */
+    .dashboard-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .wave-dashboard {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.4;
+        animation: float 20s ease-in-out infinite;
+    }
+
+    .wave-dashboard.w1 {
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+        top: -10%;
+        right: 10%;
+    }
+
+    .wave-dashboard.w2 {
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(0, 217, 255, 0.2) 0%, transparent 70%);
+        bottom: 10%;
+        left: 10%;
+        animation-delay: 3s;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -30px) scale(1.1); }
+        66% { transform: translate(-30px, 30px) scale(0.9); }
+    }
+
+    /* ===== HEADER ===== */
+    .dashboard-header {
+        margin-bottom: 2.5rem;
+        position: relative;
+        padding: 2rem 0;
+    }
+
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+        text-shadow: 0 0 30px var(--primary-glow);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .dashboard-header p {
+        color: var(--text-gray);
+        font-size: 1.1rem;
+    }
+
+    /* ===== JSON TOGGLE BUTTON ===== */
+    .json-toggle-btn {
+        background: linear-gradient(135deg, #cf0906, #a00704);
+        border: none;
+        padding: 14px 30px;
+        border-radius: 50px;
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 10px 30px rgba(207, 9, 6, 0.3);
+        transition: all 0.3s;
+    }
+
+    .json-toggle-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(207, 9, 6, 0.4);
+    }
+
+    .json-events-wrapper {
+        margin-top: 3rem;
+        animation: slideDown 0.4s ease;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ===== STATS GRID ===== */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .stat-card-modern {
+        background: rgba(26, 26, 46, 0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 1.5rem;
+        border: 1px solid rgba(207, 9, 6, 0.2);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    .stat-card-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    }
+
+    .stat-card-modern:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 40px var(--primary-glow);
+        border-color: var(--primary);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        position: relative;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-light);
+        margin: 0.5rem 0;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .stat-label {
+        color: var(--text-gray);
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 6px;
+        background: var(--bg-dark);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 1.5s ease;
+        box-shadow: 0 0 10px currentColor;
+    }
+
+    /* ===== CHART CONTAINERS ===== */
+    .chart-container {
+        background: rgba(26, 26, 46, 0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid rgba(207, 9, 6, 0.2);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .chart-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .chart-title {
+        font-size: 1.3rem;
+        color: var(--text-light);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+    }
+
+    .chart-title i {
+        color: var(--primary);
+        font-size: 1.5rem;
+    }
+
+    /* ===== GRIDS ===== */
+    .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .grid-2, .grid-3 {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ===== THREAT INTEL CARD ===== */
+    .threat-intel-card {
+        background: rgba(26, 26, 46, 0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid rgba(207, 9, 6, 0.2);
+        margin-bottom: 2rem;
+    }
+
+    .threat-intel-card h2 {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        color: var(--text-light);
+    }
+
+    .threat-intel-card h2 i {
+        color: var(--primary);
+    }
+
+    .intel-box {
+        text-align: center;
+        padding: 1.5rem;
+        background: rgba(15, 15, 26, 0.6);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s;
+    }
+
+    .intel-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(207, 9, 6, 0.2);
+        border-color: var(--primary);
+    }
+
+    .intel-box .value {
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    .intel-box .label {
+        color: var(--text-gray);
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .intel-box .sublabel {
+        color: var(--accent);
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    /* ===== MITRE ATT&CK ===== */
+    .mitre-card {
+        background: rgba(15, 15, 26, 0.6);
+        backdrop-filter: blur(10px);
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--primary);
+        transition: all 0.3s;
+    }
+
+    .mitre-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 20px var(--primary-glow);
+    }
+
+    .mitre-badge {
+        background: rgba(207, 9, 6, 0.15);
+        border: 1px solid var(--primary);
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+        font-size: 0.9rem;
+    }
+
+    /* ===== TABLE ===== */
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 0.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .modern-table thead th {
+        background: rgba(15, 15, 26, 0.8);
+        color: var(--text-gray);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        border: none;
+    }
+
+    .modern-table thead th:first-child {
+        border-radius: 10px 0 0 10px;
+    }
+
+    .modern-table thead th:last-child {
+        border-radius: 0 10px 10px 0;
+    }
+
+    .modern-table tbody tr {
+        background: rgba(26, 26, 46, 0.6);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s;
+    }
+
+    .modern-table tbody tr:hover {
+        background: rgba(26, 26, 46, 0.9);
+        transform: translateX(5px);
+        box-shadow: 0 5px 20px rgba(207, 9, 6, 0.2);
+    }
+
+    .modern-table tbody td {
+        padding: 1rem;
+        border: none;
+        color: var(--text-light);
+    }
+
+    .modern-table tbody td:first-child {
+        border-radius: 10px 0 0 10px;
+    }
+
+    .modern-table tbody td:last-child {
+        border-radius: 0 10px 10px 0;
+    }
+
+    /* ===== BADGES ===== */
+    .badge-modern {
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-danger { background: rgba(255, 0, 110, 0.2); color: #ff006e; border: 1px solid #ff006e; }
+    .badge-warning { background: rgba(255, 165, 0, 0.2); color: #ffa500; border: 1px solid #ffa500; }
+    .badge-info { background: rgba(0, 217, 255, 0.2); color: #00d9ff; border: 1px solid #00d9ff; }
+    .badge-success { background: rgba(0, 255, 136, 0.2); color: #00ff88; border: 1px solid #00ff88; }
+
+    /* ===== IP BLOCK CARD ===== */
+    .ip-block-card {
+        background: rgba(15, 15, 26, 0.6);
+        backdrop-filter: blur(10px);
+        padding: 1.5rem;
+        border-radius: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s;
+    }
+
+    .ip-block-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(207, 9, 6, 0.2);
+        border-color: var(--primary);
+    }
+
+    .ip-address {
+        font-size: 1.2rem;
+        color: var(--primary);
+        background: rgba(15, 15, 26, 0.8);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Animated Background -->
+<div class="dashboard-bg">
+    <div class="wave-dashboard w1"></div>
+    <div class="wave-dashboard w2"></div>
+</div>
+
+<!-- Header -->
+<div class="dashboard-header">
+    <h1>
+        <i class="fas fa-shield-alt" style="color: var(--primary);"></i>
+        Security Operations Dashboard
+    </h1>
+    <p>Real-time monitoring and threat intelligence</p>
+</div>
+
+
+
+<!-- KPI CARDS -->
+<div class="stats-grid">
+    <div class="stat-card-modern">
+        <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-value">{{ total_incidents }}</div>
+        <div class="stat-label">Total Incidents</div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-light));"></div>
+        </div>
+    </div>
+    
+    <div class="stat-card-modern">
+        <div class="stat-icon" style="background: linear-gradient(135deg, var(--warning), #ff8800);">
+            <i class="fas fa-bell"></i>
+        </div>
+        <div class="stat-value">{{ active_incidents }}</div>
+        <div class="stat-label">Active Incidents</div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ active_incidents|default:0 }}%; background: linear-gradient(90deg, var(--warning), #ff8800);"></div>
+        </div>
+    </div>
+    
+    <div class="stat-card-modern">
+        <div class="stat-icon" style="background: linear-gradient(135deg, var(--danger), #c20055);">
+            <i class="fas fa-fire"></i>
+        </div>
+        <div class="stat-value">{{ critical_incidents }}</div>
+        <div class="stat-label">Critical Threats</div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ critical_incidents|default:0 }}%; background: linear-gradient(90deg, var(--danger), #c20055);"></div>
+        </div>
+    </div>
+    
+    <div class="stat-card-modern">
+        <div class="stat-icon" style="background: linear-gradient(135deg, var(--success), #00a040);">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-value">{{ resolved_incidents }}</div>
+        <div class="stat-label">Resolved</div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 75%; background: linear-gradient(90deg, var(--success), #00a040);"></div>
+        </div>
+    </div>
+    
+    <div class="stat-card-modern">
+        <div class="stat-icon" style="background: linear-gradient(135deg, var(--accent), #00a8cc);">
+            <i class="fas fa-play-circle"></i>
+        </div>
+        <div class="stat-value">{{ active_playbooks }}/{{ total_playbooks }}</div>
+        <div class="stat-label">Active Playbooks</div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ success_rate }}%; background: linear-gradient(90deg, var(--accent), #00a8cc);"></div>
+        </div>
+    </div>
+    
+    <div class="stat-card-modern">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #00ff88, #00cc6f);">
+            <i class="fas fa-bolt"></i>
+        </div>
+        <div class="stat-value">{{ success_rate }}%</div>
+        <div class="stat-label">Success Rate</div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ success_rate }}%; background: linear-gradient(90deg, #00ff88, #00cc6f);"></div>
+        </div>
+    </div>
+    
+    <div class="stat-card-modern">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #ff006e, #c20055);">
+            <i class="fas fa-ban"></i>
+        </div>
+        <div class="stat-value">{{ blocked_ips_count }}</div>
+        <div class="stat-label">IPs Blocked</div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 60%; background: linear-gradient(90deg, #ff006e, #c20055);"></div>
+        </div>
+    </div>
+    
+    <div class="stat-card-modern">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #ffa500, #ff8800);">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-value">{{ avg_response_time }}m</div>
+        <div class="stat-label">Avg Response Time</div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 45%; background: linear-gradient(90deg, #ffa500, #ff8800);"></div>
+        </div>
+    </div>
+</div>
+
+<!-- CHARTS ROW 1 -->
+<div class="grid-2">
+    <div class="chart-container">
+        <h2 class="chart-title">
+            <i class="fas fa-chart-pie"></i>
+            Incidents by Severity
+        </h2>
+        <canvas id="severityChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+        <h2 class="chart-title">
+            <i class="fas fa-chart-bar"></i>
+            Incidents by Type
+        </h2>
+        <canvas id="typeChart"></canvas>
+    </div>
+</div>
+
+<!-- CHARTS ROW 2 -->
+<div class="grid-2">
+    <div class="chart-container">
+        <h2 class="chart-title">
+            <i class="fas fa-tasks"></i>
+            Incident Status Distribution
+        </h2>
+        <canvas id="statusChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+        <h2 class="chart-title">
+            <i class="fas fa-chart-line"></i>
+            7-Day Incident Trend
+        </h2>
+        <canvas id="trendChart"></canvas>
+    </div>
+</div>
+
+<!-- PLAYBOOK PERFORMANCE -->
+<div class="chart-container">
+    <h2 class="chart-title">
+        <i class="fas fa-cogs"></i>
+Playbook Execution Results
+    </h2>
+<canvas id="playbookChart"></canvas>
+</div>
+
+
+<!-- Ensuite, gardez le reste du template comme avant -->
+<!-- CHARTS ROW 3 -->
+<div class="grid-2">
+    <div class="chart-container">
+        <h2 class="chart-title">
+            <i class="fas fa-running"></i>
+            Actions Executed
+        </h2>
+        <canvas id="actionsChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+        <h2 class="chart-title">
+            <i class="fas fa-radiation"></i>
+            Attack Vector Distribution
+        </h2>
+        <canvas id="attackChart"></canvas>
+    </div>
+</div>
+
+
+<!-- HEATMAP -->
+<div class="chart-container">
+    <h2 class="chart-title">
+        <i class="fas fa-fire-alt"></i>
+        24-Hour Activity Heatmap
+    </h2>
+    <canvas id="heatmapChart"></canvas>
+</div>
+
+<!-- THREAT INTELLIGENCE -->
+<div class="threat-intel-card">
+    <h2>
+        <i class="fas fa-biohazard"></i>
+        Threat Intelligence Summary
+    </h2>
+    <div class="grid-3">
+        <div class="intel-box">
+            <div class="value">{{ enrichment_rate }}%</div>
+            <div class="label">Enrichment Rate</div>
+            <div class="sublabel">{{ enriched_incidents }}/{{ total_incidents }} incidents</div>
+        </div>
+        <div class="intel-box">
+            <div class="value">{{ malicious_ips }}</div>
+            <div class="label">Malicious IPs</div>
+            <div class="sublabel">Via VirusTotal API</div>
+        </div>
+        <div class="intel-box">
+            <div class="value">{{ total_executions }}</div>
+            <div class="label">Total Automations</div>
+            <div class="sublabel">Playbook Executions</div>
+        </div>
+    </div>
+</div>
+
+<!-- MITRE ATT&CK -->
+<div class="threat-intel-card">
+    <h2>
+        <i class="fas fa-crosshairs"></i>
+        MITRE ATT&CK Framework Mapping
+    </h2>
+    {% for mitre in mitre_stats %}
+    <div class="mitre-card">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div style="flex: 1;">
+                <h3 style="color: var(--accent); margin-bottom: 0.5rem; font-size: 1.2rem;">{{ mitre.type }}</h3>
+                <div class="mitre-badge">
+                    <strong>Tactic:</strong> {{ mitre.tactic }}
+                </div>
+                <div class="mitre-badge">
+                    <strong>Technique:</strong> {{ mitre.technique }}
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 2.5rem; color: var(--primary); font-weight: 700;">{{ mitre.count }}</div>
+                <div style="color: var(--text-gray); font-size: 0.9rem;">Incidents</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- RECENT INCIDENTS -->
+<div class="threat-intel-card">
+    <h2>
+        <i class="fas fa-list-alt"></i>
+        Recent Incidents
+    </h2>
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>IP Source</th>
+                <th>Detected</th>
+                <th>Response Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for incident in recent_incidents %}
+            <tr>
+                <td><a href="{% url 'incidents:detail' incident.id %}" style="color: var(--accent); text-decoration: none;">{{ incident.title|truncatewords:5 }}</a></td>
+                <td>{{ incident.get_incident_type_display }}</td>
+                <td>
+                    {% if incident.severity == 'critical' %}
+                        <span class="badge-modern badge-danger">Critical</span>
+                    {% elif incident.severity == 'high' %}
+                        <span class="badge-modern badge-warning">High</span>
+                    {% elif incident.severity == 'medium' %}
+                        <span class="badge-modern badge-info">Medium</span>
+                    {% else %}
+                        <span class="badge-modern badge-success">Low</span>
+                    {% endif %}
+                </td>
+                <td><span class="badge-modern badge-info">{{ incident.get_status_display }}</span></td>
+                <td><code class="ip-address" style="font-size: 0.9rem; padding: 0.25rem 0.5rem;">{{ incident.source_ip|default:"-" }}</code></td>
+                <td>{{ incident.detected_at|date:"d/m H:i" }}</td>
+                <td>
+                    {% if incident.resolved_at %}
+                        {{ incident.resolved_at|timesince:incident.detected_at }}
+                    {% else %}
+                        <span style="color: var(--warning);">Ongoing</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- TOP BLOCKED IPs -->
+<div class="threat-intel-card">
+    <h2>
+        <i class="fas fa-shield-virus"></i>
+        Top Blocked IP Addresses
+    </h2>
+    <div class="grid-2" style="margin-top: 1.5rem;">
+        {% for ip in top_blocked_ips %}
+        <div class="ip-block-card">
+            <div>
+                <code class="ip-address">{{ ip.ip_address }}</code>
+                <p style="color: var(--text-gray); margin-top: 0.5rem; font-size: 0.9rem;">{{ ip.reason|truncatewords:8 }}</p>
+            </div>
+            <div style="text-align: right;">
+                <div style="color: var(--text-gray); font-size: 0.85rem;">{{ ip.blocked_at|date:"d/m H:i" }}</div>
+                <span class="badge-modern badge-danger" style="margin-top: 0.5rem;">Blocked</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+<div style="margin-bottom: 2rem;">
+    <button id="toggle-json-btn" class="json-toggle-btn">
+        <i class="fas fa-database"></i>
+        Show Security Events
+    </button>
+</div>
+
+</div>
+
+<!-- JSON EVENTS SECTION (Hidden by default) -->
+<div id="json-events-container" class="json-events-wrapper" style="display: none;">
+    {% include './json_events_section.html' %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Color palette
+const colors = {
+    primary: '#cf0906',
+    primaryDark: '#a00704',
+    primaryLight: '#ff2420',
+    accent: '#00d9ff',
+    accentDark: '#00a8cc',
+    success: '#00ff88',
+    warning: '#ffa500',
+    danger: '#ff006e',
+    info: '#00d9ff',
+};
+
+// Chart defaults
+Chart.defaults.color = '#a0a4b8';
+Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+Chart.defaults.font.family = "'Poppins', sans-serif";
+
+// JSON Toggle
+document.addEventListener("DOMContentLoaded", function () {
+    const toggleBtn = document.getElementById("toggle-json-btn");
+    const jsonSection = document.getElementById("json-events-container");
+
+    if (toggleBtn && jsonSection) {
+        toggleBtn.addEventListener("click", function () {
+            const isHidden = jsonSection.style.display === "none";
+            jsonSection.style.display = isHidden ? "block" : "none";
+            toggleBtn.innerHTML = isHidden
+                ? '<i class="fas fa-times"></i> Hide Security Events'
+                : '<i class="fas fa-database"></i> Show Security Events';
+        });
+    }
+});
+
+// 1. SEVERITY PIE CHART
+new Chart(document.getElementById('severityChart'), {
+    type: 'pie',
+    data: {
+        labels: {{ severity_labels|safe }},
+        datasets: [{
+            data: {{ severity_data|safe }},
+            backgroundColor: [colors.danger, colors.warning, colors.info, colors.success],
+            borderWidth: 2,
+            borderColor: '#1a1d29'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 20, font: { size: 13 } } },
+            tooltip: {
+                callbacks: {
+                    label: (context) => `${context.label}: ${context.parsed} incidents`
+                }
+            }
+        }
+    }
+});
+
+// 2. TYPE BAR CHART
+new Chart(document.getElementById('typeChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ type_labels|safe }},
+        datasets: [{
+            label: 'Incidents',
+            data: {{ type_data|safe }},
+            backgroundColor: [colors.primary, colors.accent, colors.warning],
+            borderRadius: 10
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+// 3. STATUS DOUGHNUT
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ status_labels|safe }},
+        datasets: [{
+            data: {{ status_data|safe }},
+            backgroundColor: [colors.warning, colors.info, colors.success, colors.danger],
+            borderWidth: 2,
+            borderColor: '#1a1d29'
+        }]
+    },
+    options: {
+        responsive: true,
+        cutout: '70%',
+        plugins: { legend: { position: 'bottom', labels: { padding: 20 } } }
+    }
+});
+
+// 4. TREND LINE
+new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+        labels: {{ trend_labels|safe }},
+        datasets: [{
+            label: 'Incidents',
+            data: {{ trend_data|safe }},
+            borderColor: colors.primary,
+            backgroundColor: 'rgba(207, 9, 6, 0.1)',
+            tension: 0.4,
+            fill: true,
+            borderWidth: 3,
+            pointRadius: 5,
+            pointBackgroundColor: colors.primary,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+// 5. PLAYBOOK STACKED BAR
+new Chart(document.getElementById('playbookChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ playbook_names|safe }},
+        datasets: [
+            { label: 'Success', data: {{ playbook_success|safe }}, backgroundColor: colors.success, borderRadius: 5 },
+            { label: 'Failed', data: {{ playbook_failed|safe }}, backgroundColor: colors.danger, borderRadius: 5 },
+            { label: 'Partial', data: {{ playbook_partial|safe }}, backgroundColor: colors.warning, borderRadius: 5 }
+        ]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            x: { stacked: true, grid: { display: false } },
+            y: { stacked: true, beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
+        },
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+
+// 6. ACTIONS PIE
+new Chart(document.getElementById('actionsChart'), {
+    type: 'pie',
+    data: {
+        labels: ['Successful', 'Failed'],
+        datasets: [{
+            data: [{{ total_actions_executed }}, {{ total_actions_failed }}],
+            backgroundColor: [colors.success, colors.danger],
+            borderWidth: 2,
+            borderColor: '#1a1d29'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+
+// 7. ATTACK POLAR
+new Chart(document.getElementById('attackChart'), {
+    type: 'polarArea',
+    data: {
+        labels: ['Suspicious IP', 'Auth Failure', 'Port Scan'],
+        datasets: [{
+            data: {{ attack_counts|safe }},
+            backgroundColor: [
+                'rgba(207, 9, 6, 0.7)',
+                'rgba(0, 217, 255, 0.7)',
+                'rgba(255, 165, 0, 0.7)'
+            ],
+            borderWidth: 2,
+            borderColor: '#1a1d29'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+
+// 8. HEATMAP
+new Chart(document.getElementById('heatmapChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ hour_labels|safe }},
+        datasets: [{
+            label: 'Activity Level',
+            data: {{ hour_data|safe }},
+            backgroundColor: (context) => {
+                const value = context.parsed.y;
+                const max = Math.max(...{{ hour_data|safe }});
+                const intensity = value / max;
+                return `rgba(207, 9, 6, ${intensity})`;
+            },
+            borderRadius: 5,
+            barThickness: 30
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y} incidents` } }
+        },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+</script>
+{% endblock %}

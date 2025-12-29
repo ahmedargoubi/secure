@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h1 style="color: var(--danger);">🗑️ Supprimer l'Action</h1>
+    <p style="color: var(--text-gray); margin: 1.5rem 0;">
+        Supprimer cette action du playbook <strong>{{ playbook.name }}</strong> ?
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-danger">Supprimer</button>
+            <a href="{% url 'playbooks:detail' playbook.id %}" class="btn btn-primary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

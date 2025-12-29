@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Importer des Logs - SecureFlow{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 900px; margin: 0 auto;">
+    <h1>📥 Importer des Logs</h1>
+    <p style="color: var(--text-gray); margin-bottom: 2rem;">
+        Importez vos fichiers de logs pour détecter automatiquement les incidents
+    </p>
+    
+    <!-- Formulaire d'upload -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            {{ form.file.label_tag }}
+            {{ form.file }}
+            <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
+                {{ form.file.help_text }}
+            </small>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">
+                📤 Importer et Analyser
+            </button>
+            <a href="{% url 'incidents:list' %}" class="btn btn-danger">
+                ❌ Annuler
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Documentation des formats -->
+<div class="card" style="max-width: 900px; margin: 2rem auto;">
+    <h2>📚 Formats Supportés</h2>
+    
+    <!-- Format JSON -->
+    <div style="margin-top: 2rem;">
+        <h3 style="color: var(--accent);">Format JSON</h3>
+        <p style="color: var(--text-gray); margin-bottom: 1rem;">
+            Un objet ou un tableau d'objets avec les champs suivants :
+        </p>
+        <pre style="background: var(--bg-darker); padding: 1rem; border-radius: 10px; overflow-x: auto; color: var(--text-gray);"><code>[
+  {
+    "source_ip": "192.168.1.100",
+    "event_type": "auth_failure",
+    "failed_attempts": 8,
+    "timestamp": "2025-12-12T10:30:00Z"
+  },
+  {
+    "source_ip": "10.0.0.50",
+    "event_type": "port_scan",
+    "ports_scanned": [22, 80, 443, 8080],
+    "timestamp": "2025-12-12T11:00:00Z"
+  }
+]</code></pre>
+    </div>
+    
+    <!-- Format CSV -->
+    <div style="margin-top: 2rem;">
+        <h3 style="color: var(--accent);">Format CSV</h3>
+        <p style="color: var(--text-gray); margin-bottom: 1rem;">
+            Fichier CSV avec header et les colonnes suivantes :
+        </p>
+        <pre style="background: var(--bg-darker); padding: 1rem; border-radius: 10px; overflow-x: auto; color: var(--text-gray);"><code>source_ip,event_type,failed_attempts,severity
+192.168.1.100,auth_failure,8,high
+10.0.0.50,port_scan,0,medium
+203.0.113.45,suspicious_ip,0,critical</code></pre>
+    </div>
+    
+    <!-- Règles de détection -->
+    <div style="margin-top: 2rem; background: var(--bg-darker); padding: 1.5rem; border-radius: 10px;">
+        <h3 style="color: var(--primary);">🔍 Règles de Détection Automatique</h3>
+        <ul style="color: var(--text-gray); margin-top: 1rem; line-height: 2;">
+            <li><strong>Échecs d'authentification :</strong> ≥ 5 tentatives échouées → Incident créé (criticité: medium/high)</li>
+            <li><strong>Scan de ports :</strong> > 10 ports scannés → Incident créé (criticité: high)</li>
+            <li><strong>IP suspecte :</strong> Toute activité inhabituelle → Incident créé (criticité: selon contexte)</li>
+        </ul>
+        <p style="color: var(--accent); margin-top: 1rem;">
+            ⚡ Les playbooks correspondants seront déclenchés automatiquement !
+        </p>
+    </div>
+</div>
+
+<!-- Exemples de fichiers -->
+<div class="card" style="max-width: 900px; margin: 2rem auto;">
+    <h2>📂 Fichiers d'Exemple</h2>
+    <p style="color: var(--text-gray); margin-bottom: 1.5rem;">
+        Téléchargez ces exemples pour tester l'import :
+    </p>
+    
+    <div class="grid grid-2">
+        <div style="background: var(--bg-darker); padding: 1.5rem; border-radius: 10px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
+            <h4 style="color: var(--text-light); margin-bottom: 0.5rem;">example_logs.json</h4>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                10 incidents simulés en JSON
+            </p>
+            <button onclick="downloadJSON()" class="btn btn-accent">
+                ⬇️ Télécharger JSON
+            </button>
+        </div>
+        
+        <div style="background: var(--bg-darker); padding: 1.5rem; border-radius: 10px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+            <h4 style="color: var(--text-light); margin-bottom: 0.5rem;">example_logs.csv</h4>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                10 incidents simulés en CSV
+            </p>
+            <button onclick="downloadCSV()" class="btn btn-accent">
+                ⬇️ Télécharger CSV
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function downloadJSON() {
+    const data = [
+        {"source_ip": "192.168.1.100", "event_type": "auth_failure", "failed_attempts": 8, "severity": "high"},
+        {"source_ip": "10.0.0.50", "event_type": "port_scan", "ports_scanned": [22, 80, 443, 8080, 3306, 5432, 6379, 27017, 9200, 5601, 3000], "severity": "high"},
+        {"source_ip": "203.0.113.45", "event_type": "suspicious_ip", "severity": "critical"},
+        {"source_ip": "198.51.100.78", "event_type": "auth_failure", "failed_attempts": 12, "severity": "critical"},
+        {"source_ip": "172.16.0.99", "event_type": "port_scan", "ports_scanned": [21, 22, 23, 25, 80, 110, 143, 443, 993, 995, 3389, 8080], "severity": "high"}
+    ];
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'example_logs.json';
+    a.click();
+}
+
+function downloadCSV() {
+    const csv = `source_ip,event_type,failed_attempts,severity
+192.168.1.100,auth_failure,8,high
+10.0.0.50,port_scan,0,high
+203.0.113.45,suspicious_ip,0,critical
+198.51.100.78,auth_failure,12,critical
+172.16.0.99,port_scan,0,high`;
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'example_logs.csv';
+    a.click();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Incidents - SecureFlow{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1>🚨 Gestion des Incidents</h1>
+            <p style="color: var(--text-gray); margin-top: 0.5rem;">
+                Détection et réponse automatisée aux menaces
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{% url 'incidents:create' %}" class="btn btn-primary">
+                + Créer un Incident
+            </a>
+            <a href="{% url 'incidents:import' %}" class="btn btn-accent">
+                📥 Importer des Logs
+            </a>
+            <a href="{% url 'incidents:simulate' %}" class="btn btn-success">
+                🎭 Simuler un Test
+            </a>
+        </div>
+    </div>
+    
+    <!-- Statistiques -->
+    <div class="grid grid-3" style="margin-bottom: 2rem;">
+        <div class="stat-card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">
+            <h3>{{ total_incidents }}</h3>
+            <p>Total Incidents</p>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, var(--warning) 0%, #ff8800 100%);">
+            <h3>{{ active_incidents }}</h3>
+            <p>Incidents Actifs</p>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(135deg, var(--danger) 0%, #c20055 100%);">
+            <h3>{{ critical_incidents }}</h3>
+            <p>Incidents Critiques</p>
+        </div>
+    </div>
+    
+    <!-- Filtres -->
+    <div style="background: var(--bg-darker); padding: 1rem; border-radius: 10px; margin-bottom: 2rem;">
+        <form method="get" style="display: flex; gap: 1rem; align-items: end;">
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-gray); font-size: 0.9rem;">Statut</label>
+                <select name="status" class="form-control" onchange="this.form.submit()">
+                    <option value="">Tous</option>
+                    <option value="new">Nouveau</option>
+                    <option value="in_progress">En cours</option>
+                    <option value="resolved">Résolu</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-gray); font-size: 0.9rem;">Criticité</label>
+                <select name="severity" class="form-control" onchange="this.form.submit()">
+                    <option value="">Toutes</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-gray); font-size: 0.9rem;">Type</label>
+                <select name="type" class="form-control" onchange="this.form.submit()">
+                    <option value="">Tous</option>
+                    <option value="suspicious_ip">IP Suspecte</option>
+                    <option value="auth_failure">Échecs Auth</option>
+                    <option value="port_scan">Scan Ports</option>
+                </select>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Liste des incidents -->
+    {% if incidents %}
+    <table>
+        <thead>
+            <tr>
+                <th>Titre</th>
+                <th>Type</th>
+                <th>IP Source</th>
+                <th>Criticité</th>
+                <th>Statut</th>
+                <th>Playbook</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for incident in incidents %}
+            <tr>
+                <td>
+                    <a href="{% url 'incidents:detail' incident.id %}" style="color: var(--accent); text-decoration: none; font-weight: 600;">
+                        {{ incident.title }}
+                    </a>
+                </td>
+                <td>{{ incident.get_incident_type_display }}</td>
+                <td><code style="background: var(--bg-darker); padding: 0.25rem 0.5rem; border-radius: 5px;">{{ incident.source_ip|default:"-" }}</code></td>
+                <td>
+                    {% if incident.severity == 'critical' %}
+                        <span class="badge badge-danger">🔴 {{ incident.get_severity_display }}</span>
+                    {% elif incident.severity == 'high' %}
+                        <span class="badge badge-warning">🟠 {{ incident.get_severity_display }}</span>
+                    {% elif incident.severity == 'medium' %}
+                        <span class="badge badge-info">🟡 {{ incident.get_severity_display }}</span>
+                    {% else %}
+                        <span class="badge badge-success">🟢 {{ incident.get_severity_display }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if incident.status == 'new' %}
+                        <span class="badge badge-warning">Nouveau</span>
+                    {% elif incident.status == 'in_progress' %}
+                        <span class="badge badge-info">En cours</span>
+                    {% elif incident.status == 'resolved' %}
+                        <span class="badge badge-success">Résolu</span>
+                    {% else %}
+                        <span class="badge">{{ incident.get_status_display }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if incident.auto_playbook_triggered %}
+                        <span class="badge badge-success">✓ Déclenché</span>
+                    {% else %}
+                        <span class="badge badge-danger">✗ Non</span>
+                    {% endif %}
+                </td>
+                <td>{{ incident.detected_at|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🚨</div>
+        <h3 style="color: var(--text-gray); margin-bottom: 1rem;">Aucun incident détecté</h3>
+        <p style="margin-bottom: 2rem;">Importez des logs ou simulez un incident de test.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="{% url 'incidents:import' %}" class="btn btn-accent">
+                📥 Importer des Logs
+            </a>
+            <a href="{% url 'incidents:simulate' %}" class="btn btn-success">
+                🎭 Simuler un Test
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+[
+  {
+    "timestamp": "2025-12-15T12:59:36.602338Z",
+    "event_type": "ssh_bruteforce",
+    "source_ip": "192.168.163.142",
+    "destination_ip": "192.168.163.135",
+    "severity": "high",
+    "description": "SSH attack detected from 192.168.163.142",
+    "details": {
+      "log_line": "Dec 15 13:59:36 ubuntu-virtual-machine sshd[5340]: Failed password for root from 192.168.163.142 port 44420 ssh2"
+    }
+  },
+  {
+    "timestamp": "2025-12-15T12:59:36.602498Z",
+    "event_type": "ssh_bruteforce",
+    "source_ip": "192.168.163.142",
+    "destination_ip": "192.168.163.135",
+    "severity": "high",
+    "description": "SSH attack detected from 192.168.163.142",
+    "details": {
+      "log_line": "Dec 15 13:59:36 ubuntu-virtual-machine sshd[5342]: Failed password for root from 192.168.163.142 port 44438 ssh2"
+    }
+  },
+  {
+    "timestamp": "2025-12-15T12:59:36.618591Z",
+    "event_type": "ssh_bruteforce",
+    "source_ip": "192.168.163.142",
+    "destination_ip": "192.168.163.135",
+    "severity": "high",
+    "description": "SSH attack detected from 192.168.163.142",
+    "details": {
+      "log_line": "Dec 15 13:59:36 ubuntu-virtual-machine sshd[5343]: Failed password for root from 192.168.163.142 port 44452 ssh2"
+    }
+  },
+  {
+    "timestamp": "2025-12-15T12:59:36.663851Z",
+    "event_type": "ssh_bruteforce",
+    "source_ip": "192.168.163.142",
+    "destination_ip": "192.168.163.135",
+    "severity": "high",
+    "description": "SSH attack detected from 192.168.163.142",
+    "details": {
+      "log_line": "Dec 15 13:59:36 ubuntu-virtual-machine sshd[5341]: Failed password for root from 192.168.163.142 port 44436 ssh2"
+    }
+  }
+]

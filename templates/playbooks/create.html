@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_edit %}Éditer{% else %}Créer{% endif %} Playbook - SecureFlow{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <h1>{% if is_edit %}✏️ Éditer le Playbook{% else %}➕ Créer un Playbook{% endif %}</h1>
+    <p style="color: var(--text-gray); margin-bottom: 2rem;">
+        {% if is_edit %}
+            Modifiez les paramètres de votre playbook
+        {% else %}
+            Créez un playbook pour automatiser vos réponses aux incidents
+        {% endif %}
+    </p>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+            {% if form.name.errors %}
+                <span style="color: var(--primary-light); font-size: 0.9rem;">{{ form.name.errors.0 }}</span>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.description.label_tag }}
+            {{ form.description }}
+            {% if form.description.errors %}
+                <span style="color: var(--primary-light); font-size: 0.9rem;">{{ form.description.errors.0 }}</span>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.trigger.label_tag }}
+            {{ form.trigger }}
+            <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
+                L'événement qui déclenchera automatiquement ce playbook
+            </small>
+            {% if form.trigger.errors %}
+                <span style="color: var(--primary-light); font-size: 0.9rem;">{{ form.trigger.errors.0 }}</span>
+            {% endif %}
+        </div>
+        
+        <div class="form-group" style="display: flex; align-items: center; gap: 1rem;">
+            {{ form.is_active }}
+            <label for="{{ form.is_active.id_for_label }}" style="margin: 0; cursor: pointer;">
+                {{ form.is_active.label }}
+            </label>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">
+                {% if is_edit %}💾 Enregistrer{% else %}✅ Créer le Playbook{% endif %}
+            </button>
+            <a href="{% if is_edit %}{% url 'playbooks:detail' playbook.id %}{% else %}{% url 'playbooks:list' %}{% endif %}" class="btn btn-danger">
+                ❌ Annuler
+            </a>
+        </div>
+    </form>
+</div>
+
+{% if is_edit %}
+<div class="card" style="max-width: 800px; margin: 2rem auto;">
+    <h2 style="color: var(--danger);">⚠️ Zone de Danger</h2>
+    <p style="color: var(--text-gray); margin-bottom: 1rem;">
+        La suppression d'un playbook est irréversible et supprimera également toutes ses actions.
+    </p>
+    <a href="{% url 'playbooks:delete' playbook.id %}" class="btn btn-danger">
+        🗑️ Supprimer ce playbook
+    </a>
+</div>
+{% endif %}
+{% endblock %}

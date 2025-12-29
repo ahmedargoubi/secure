@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <h1>➕ Créer un Incident</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Créer</button>
+        <a href="{% url 'incidents:list' %}" class="btn btn-danger">Annuler</a>
+    </form>
+</div>
+{% endblock %}

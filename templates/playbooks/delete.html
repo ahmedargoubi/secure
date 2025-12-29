@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h1 style="color: var(--danger);">🗑️ Supprimer le Playbook</h1>
+    <p style="color: var(--text-gray); margin: 1.5rem 0;">
+        Êtes-vous sûr de vouloir supprimer <strong>{{ playbook.name }}</strong> ?
+        Cette action est irréversible.
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+            <a href="{% url 'playbooks:detail' playbook.id %}" class="btn btn-primary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

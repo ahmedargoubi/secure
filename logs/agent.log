@@ -1,0 +1,22 @@
+======================================================================
+🛡️  AGENT SECUREFLOW
+======================================================================
+SOAR: http://127.0.0.1:8000
+Heure: 17:11:45
+======================================================================
+
+✅ SOAR accessible
+
+👁️  [SSH] Monitoring auth.log...
+👁️  [PORT] Monitoring ufw.log...
+👁️  [WEB] Monitoring /var/log/nginx/access.log...
+👁️  [DDOS] Monitoring connexions...
+✅ Moniteurs démarrés
+
+👋 Terminé
+Traceback (most recent call last):
+  File "/root/secureflow/security_agent.py", line 210, in <module>
+    main()
+  File "/root/secureflow/security_agent.py", line 198, in main
+    while running:
+UnboundLocalError: local variable 'running' referenced before assignment

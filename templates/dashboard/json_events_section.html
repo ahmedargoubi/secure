@@ -1,0 +1,225 @@
+{% if json_events %}
+<div class="threat-intel-card">
+    <h2>
+        <i class="fas fa-file-code"></i>
+        Security Events from Agent (JSON Feed)
+    </h2>
+    
+    <div style="background: rgba(15, 15, 26, 0.6); padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <strong style="color: var(--text-light); font-size: 0.95rem;">Source File:</strong> 
+                <code style="color: var(--accent); background: rgba(0, 217, 255, 0.1); padding: 0.4rem 0.8rem; border-radius: 5px; font-size: 0.9rem; margin-left: 0.5rem;">
+                    security_events_20251215_135945.json
+                </code>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <span class="badge-modern badge-success">
+                    <i class="fas fa-check-circle"></i> {{ json_events|length }} Events Loaded
+                </span>
+                <span style="color: var(--accent); font-size: 0.85rem; font-weight: 600;">
+                    <i class="fas fa-database"></i> All JSON files merged
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Event Statistics -->
+    <div class="grid-3" style="margin-bottom: 2rem;">
+        <div class="intel-box" style="background: rgba(207, 9, 6, 0.1); border: 1px solid var(--primary);">
+            <div style="font-size: 2.5rem; color: var(--primary); font-weight: 700;">
+                {{ json_events|length }}
+            </div>
+            <div class="label" style="color: var(--text-light);">Total Events</div>
+            <div class="sublabel">From Security Agent</div>
+        </div>
+        
+        <div class="intel-box" style="background: rgba(255, 165, 0, 0.1); border: 1px solid var(--warning);">
+            <div style="font-size: 2.5rem; color: var(--warning); font-weight: 700;">
+                {% widthratio json_events|length 1 100 %}%
+            </div>
+            <div class="label" style="color: var(--text-light);">High Severity</div>
+            <div class="sublabel">SSH Bruteforce Attacks</div>
+        </div>
+        
+        <div class="intel-box" style="background: rgba(0, 217, 255, 0.1); border: 1px solid var(--accent);">
+            <div style="font-size: 2.5rem; color: var(--accent); font-weight: 700;">
+                1
+            </div>
+            <div class="label" style="color: var(--text-light);">Source IPs</div>
+            <div class="sublabel">Unique Attackers</div>
+        </div>
+    </div>
+    
+    <!-- Events Table -->
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th><i class="fas fa-clock"></i> Timestamp</th>
+                <th><i class="fas fa-shield-alt"></i> Event Type</th>
+                <th><i class="fas fa-network-wired"></i> Source IP</th>
+                <th><i class="fas fa-server"></i> Destination IP</th>
+                <th><i class="fas fa-exclamation-triangle"></i> Severity</th>
+                <th><i class="fas fa-info-circle"></i> Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in json_events|slice:":15" %}
+            <tr>
+                <td style="font-size: 0.85rem; font-family: 'Courier New', monospace;">
+                    {{ event.timestamp|slice:":19"|slice:"11:" }}
+                </td>
+                <td>
+                    {% if event.event_type == 'ssh_bruteforce' %}
+                        <span class="badge-modern badge-danger">
+                            <i class="fas fa-user-lock"></i> SSH Bruteforce
+                        </span>
+                    {% elif event.event_type == 'port_scan' %}
+                        <span class="badge-modern badge-warning">
+                            <i class="fas fa-network-wired"></i> Port Scan
+                        </span>
+                    {% elif event.event_type == 'suspicious_ip' %}
+                        <span class="badge-modern badge-info">
+                            <i class="fas fa-exclamation-triangle"></i> Suspicious IP
+                        </span>
+                    {% else %}
+                        <span class="badge-modern badge-success">{{ event.event_type }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <code class="ip-address" style="font-size: 0.85rem; padding: 0.3rem 0.6rem; background: rgba(207, 9, 6, 0.15);">
+                        {{ event.source_ip }}
+                    </code>
+                </td>
+                <td>
+                    <code style="font-size: 0.85rem; color: var(--text-gray); background: rgba(255, 255, 255, 0.05); padding: 0.3rem 0.6rem; border-radius: 5px;">
+                        {{ event.destination_ip }}
+                    </code>
+                </td>
+                <td>
+                    {% if event.severity == 'high' or event.severity == 'critical' %}
+                        <span class="badge-modern badge-danger">
+                            <i class="fas fa-fire"></i> {{ event.severity|upper }}
+                        </span>
+                    {% elif event.severity == 'medium' %}
+                        <span class="badge-modern badge-warning">{{ event.severity|upper }}</span>
+                    {% else %}
+                        <span class="badge-modern badge-info">{{ event.severity|upper }}</span>
+                    {% endif %}
+                </td>
+                <td style="font-size: 0.85rem; color: var(--text-gray);">
+                    {{ event.description|truncatewords:10 }}
+                    {% if event.details.log_line %}
+                        <div style="margin-top: 0.3rem; font-size: 0.75rem; color: var(--text-muted); font-family: 'Courier New', monospace;">
+                            {{ event.details.log_line|truncatewords:15 }}
+                        </div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if json_events|length > 15 %}
+    <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+        <p style="color: var(--text-gray); margin-bottom: 1rem;">
+            Showing 15 of {{ json_events|length }} events
+        </p>
+        <a href="{% url 'incidents:list' %}" style="
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px var(--primary-glow);
+        ">
+            <i class="fas fa-list"></i> View All Security Events
+        </a>
+    </div>
+    {% endif %}
+    
+    <!-- Agent Status -->
+    <div style="margin-top: 2rem; padding: 1rem; background: rgba(0, 255, 136, 0.1); border-left: 4px solid var(--success); border-radius: 10px;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="width: 10px; height: 10px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite;"></div>
+            <div>
+                <strong style="color: var(--success);">Security Agent Active</strong>
+                <div style="color: var(--text-gray); font-size: 0.85rem; margin-top: 0.25rem;">
+                    Monitoring: /var/log/auth.log | Last Update: Just now
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+}
+</style>
+
+{% else %}
+<div class="threat-intel-card">
+    <h2>
+        <i class="fas fa-file-code"></i>
+        Security Events (JSON Feed)
+    </h2>
+    <div style="text-align: center; padding: 4rem; color: var(--text-gray);">
+        <i class="fas fa-file-import" style="font-size: 5rem; margin-bottom: 1.5rem; opacity: 0.2; color: var(--primary);"></i>
+        <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-light);">No Security Events Loaded</h3>
+        <p style="font-size: 1rem; margin-bottom: 0.5rem; line-height: 1.6;">
+            The security agent is not currently sending events, or the JSON file is missing.
+        </p>
+        <p style="font-size: 0.9rem; margin-bottom: 2rem; color: var(--text-muted);">
+            Expected file: <code style="background: rgba(207, 9, 6, 0.1); padding: 0.25rem 0.5rem; border-radius: 5px; color: var(--primary);">
+                security_events_20251215_135945.json
+            </code>
+        </p>
+        
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'incidents:simulate' %}" style="
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                background: linear-gradient(135deg, var(--accent), #00a8cc);
+                color: white;
+                text-decoration: none;
+                border-radius: 50px;
+                font-weight: 600;
+                transition: all 0.3s;
+            ">
+                <i class="fas fa-flask"></i> Simulate Incident
+            </a>
+            
+            <a href="{% url 'incidents:import' %}" style="
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+                color: white;
+                text-decoration: none;
+                border-radius: 50px;
+                font-weight: 600;
+                transition: all 0.3s;
+            ">
+                <i class="fas fa-upload"></i> Import JSON File
+            </a>
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: rgba(255, 165, 0, 0.1); border-left: 4px solid var(--warning); border-radius: 10px; text-align: left;">
+            <strong style="color: var(--warning);"><i class="fas fa-info-circle"></i> Setup Instructions:</strong>
+            <ol style="margin-top: 0.5rem; margin-left: 1.5rem; color: var(--text-gray); font-size: 0.9rem; line-height: 1.8;">
+                <li>Ensure the security agent (security_agent.py) is running</li>
+                <li>Place the JSON file in the project root directory</li>
+                <li>Refresh this page to load the events</li>
+            </ol>
+        </div>
+    </div>
+</div>
+{% endif %}
