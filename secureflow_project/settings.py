@@ -87,7 +87,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 LANGUAGE_CODE = 'fr-fr'
-TIME_ZONE = 'Africa/Tunis'
+TIME_ZONE = ''
 USE_I18N = True
 USE_TZ = True
 
@@ -129,7 +129,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'ahmed.argoubi123456789@gmail.com'
+EMAIL_HOST_USER = ''
 
 # ⚠️ REMPLACEZ PAR VOTRE APP PASSWORD GMAIL (16 caractères)
 # Allez sur: https://myaccount.google.com/apppasswords
@@ -139,7 +139,7 @@ DEFAULT_FROM_EMAIL = 'SECUREFLOW@gmail.com'
 SERVER_EMAIL = 'SECUREFLOW@gmail.com'
 
 # Threat Intelligence APIs
-VIRUSTOTAL_API_KEY = '1eeea3fa05c7f8cb7fa658b4eef7559f663c2b0d8f1bc708ddb2d202801aa479'
+VIRUSTOTAL_API_KEY = ''
 ABUSEIPDB_API_KEY = os.getenv('ABUSEIPDB_API_KEY', '')
 
 # Login/Logout URLs
