@@ -705,85 +705,6 @@ Action.objects.create(
 
 ---
 
-## 10. TROUBLESHOOTING
-
-### 10.1 Problèmes Courants
-
-#### Problème 1 : Django ne démarre pas
-
-```bash
-# Erreur: Port 8000 already in use
-# Solution:
-sudo kill -9 $(sudo lsof -t -i:8000)
-python manage.py runserver 0.0.0.0:8000
-```
-
-#### Problème 2 : Celery ne trouve pas Redis
-
-```bash
-# Erreur: redis.exceptions.ConnectionError
-# Solution:
-sudo systemctl start redis-server
-redis-cli ping  # Doit retourner PONG
-```
-
-#### Problème 3 : iptables Permission Denied
-
-```bash
-# Erreur: Operation not permitted
-# Solution:
-sudo visudo
-# Ajouter: root ALL=(ALL) NOPASSWD: /usr/sbin/iptables
-sudo celery -A secureflow_project worker -l info
-```
-
-#### Problème 4 : Email non envoyé
-
-```bash
-# Erreur: SMTPAuthenticationError
-# Solution:
-# 1. Vérifier EMAIL_HOST_USER et EMAIL_HOST_PASSWORD dans settings.py
-# 2. Générer un nouveau mot de passe d'application Google
-# 3. Activer "Accès moins sécurisé" dans Gmail (si nécessaire)
-```
-
-#### Problème 5 : Agent ne détecte rien
-
-```bash
-# Vérifier que les logs existent
-ls -lh /var/log/auth.log
-ls -lh /var/log/ufw.log
-
-# Vérifier les permissions
-sudo chmod 644 /var/log/auth.log
-
-# Relancer l'agent avec sudo
-sudo python3 security_agent.py
-```
-
-### 10.2 Logs et Débogage
-
-```bash
-# Logs Django
-# Dans le terminal Django, vous verrez toutes les requêtes HTTP
-
-# Logs Celery
-# Dans le terminal Celery:
-# - [INFO] Task execution
-# - [ERROR] Si échec
-
-# Logs Agent
-# Dans le terminal Agent:
-# - ✅ Événements détectés
-# - 📄 Fichiers JSON créés
-
-# Voir la base de données
-python manage.py dbshell
-sqlite> SELECT * FROM incidents_incident;
-sqlite> .quit
-```
-
----
 
 ## 11. ANNEXES
 
@@ -835,12 +756,6 @@ curl http://localhost:8000/api/incidents/ | python -m json.tool
 # Débloquer une IP
 sudo iptables -D INPUT -s 192.168.1.100 -j DROP
 ```
-
-### 11.3 Contacts et Support
-
-- 📧 Email: ahmed.argoubi@example.com
-- 🐛 Issues: https://github.com/your-repo/secureflow/issues
-- 📚 Documentation: https://github.com/your-repo/secureflow/wiki
 
 ---
 
