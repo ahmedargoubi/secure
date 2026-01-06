@@ -23,8 +23,7 @@
 7. [Utilisation](#7-utilisation)
 8. [Tests avec Kali Linux](#8-tests-avec-kali-linux)
 9. [Playbooks et Actions](#9-playbooks-et-actions)
-10. [Troubleshooting](#10-troubleshooting)
-11. [Annexes](#11-annexes)
+10. [Annexes](#10-annexes)
 
 ---
 
@@ -706,9 +705,9 @@ Action.objects.create(
 ---
 
 
-## 11. ANNEXES
+## 10. ANNEXES
 
-### 11.1 Structure du Projet
+### 10.1 Structure du Projet
 
 ```
 secureflow/
@@ -736,7 +735,7 @@ secureflow/
 └── db.sqlite3
 ```
 
-### 11.2 Commandes Utiles
+### 10.2 Commandes Utiles
 
 ```bash
 # Réinitialiser la base de données
