@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![SecureFlow Banner](https://via.placeholder.com/800x200/0f0f1a/cf0906?text=SecureFlow+SOAR+Platform)
+
 
 **Security Orchestration, Automation and Response**
 
