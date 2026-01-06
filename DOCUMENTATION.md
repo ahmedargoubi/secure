@@ -6,7 +6,7 @@
 
 **Security Orchestration, Automation and Response**
 
-Version 1.0 | Année Universitaire 2025-2026
+ Année Universitaire 2025-2026
 
 </div>
 
