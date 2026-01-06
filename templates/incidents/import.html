@@ -1,153 +1,356 @@
 {% extends 'base.html' %}
 
-{% block title %}Importer des Logs - SecureFlow{% endblock %}
+{% block title %}Import Security Events - SecureFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-container {
+        background: rgba(26, 26, 46, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 3rem;
+        border: 1px solid rgba(207, 9, 6, 0.2);
+        max-width: 800px;
+        margin: 2rem auto;
+    }
+    
+    .upload-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    }
+    
+    .upload-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .upload-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 10px 30px var(--primary-glow);
+    }
+    
+    .upload-icon svg {
+        width: 40px;
+        height: 40px;
+        fill: white;
+    }
+    
+    .upload-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+    }
+    
+    .upload-subtitle {
+        color: var(--text-gray);
+        font-size: 1.1rem;
+    }
+    
+    .file-upload-area {
+        border: 3px dashed rgba(207, 9, 6, 0.3);
+        border-radius: 20px;
+        padding: 3rem;
+        text-align: center;
+        background: rgba(15, 15, 26, 0.5);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 2rem;
+    }
+    
+    .file-upload-area:hover {
+        border-color: var(--primary);
+        background: rgba(207, 9, 6, 0.05);
+    }
+    
+    .file-upload-area.dragover {
+        border-color: var(--primary-light);
+        background: rgba(207, 9, 6, 0.1);
+        transform: scale(1.02);
+    }
+    
+    .upload-icon-large {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 1.5rem;
+        background: rgba(207, 9, 6, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .upload-icon-large svg {
+        width: 50px;
+        height: 50px;
+        fill: var(--primary);
+    }
+    
+    .upload-text {
+        font-size: 1.3rem;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .upload-hint {
+        color: var(--text-gray);
+        font-size: 0.95rem;
+    }
+    
+    .file-input {
+        display: none;
+    }
+    
+    .file-selected {
+        background: rgba(0, 255, 136, 0.1);
+        border: 2px solid #00ff88;
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .file-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #00ff88, #00cc6f);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .file-icon svg {
+        width: 25px;
+        height: 25px;
+        fill: white;
+    }
+    
+    .file-info {
+        flex: 1;
+    }
+    
+    .file-name {
+        font-weight: 600;
+        color: var(--text-light);
+        margin-bottom: 0.3rem;
+    }
+    
+    .file-size {
+        font-size: 0.9rem;
+        color: var(--text-gray);
+    }
+    
+    .file-remove {
+        background: rgba(207, 9, 6, 0.2);
+        border: none;
+        color: var(--primary);
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .file-remove:hover {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .info-box {
+        background: rgba(0, 217, 255, 0.1);
+        border: 1px solid rgba(0, 217, 255, 0.3);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .info-box h4 {
+        color: #00d9ff;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-box ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .info-box li {
+        color: var(--text-gray);
+        padding: 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-box li::before {
+        content: '✓';
+        color: #00ff88;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 900px; margin: 0 auto;">
-    <h1>📥 Importer des Logs</h1>
-    <p style="color: var(--text-gray); margin-bottom: 2rem;">
-        Importez vos fichiers de logs pour détecter automatiquement les incidents
-    </p>
+<div class="upload-container">
+    <div class="upload-header">
+        <div class="upload-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+            </svg>
+        </div>
+        <h1 class="upload-title">Import Security Events</h1>
+        <p class="upload-subtitle">Upload JSON file containing security event logs</p>
+    </div>
     
-    <!-- Formulaire d'upload -->
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="uploadForm">
         {% csrf_token %}
         
-        <div class="form-group">
-            {{ form.file.label_tag }}
-            {{ form.file }}
-            <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
-                {{ form.file.help_text }}
-            </small>
+        <div class="file-upload-area" id="dropZone">
+            <div class="upload-icon-large">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+                </svg>
+            </div>
+            <p class="upload-text">Drop JSON file here or click to browse</p>
+            <p class="upload-hint">Supported format: security_events_*.json</p>
         </div>
         
-        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button type="submit" class="btn btn-primary">
-                📤 Importer et Analyser
+        <input type="file" name="file" id="fileInput" class="file-input" accept=".json" required>
+        
+        <div id="fileSelected" class="file-selected" style="display: none;">
+            <div class="file-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                </svg>
+            </div>
+            <div class="file-info">
+                <div class="file-name" id="fileName"></div>
+                <div class="file-size" id="fileSize"></div>
+            </div>
+            <button type="button" class="file-remove" id="removeFile">
+                <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24">
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
             </button>
-            <a href="{% url 'incidents:list' %}" class="btn btn-danger">
-                ❌ Annuler
-            </a>
         </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;" id="submitBtn" disabled>
+            <svg style="width: 20px; height: 20px; fill: currentColor; margin-right: 10px;" viewBox="0 0 24 24">
+                <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+            </svg>
+            Upload and Process Events
+        </button>
     </form>
-</div>
-
-<!-- Documentation des formats -->
-<div class="card" style="max-width: 900px; margin: 2rem auto;">
-    <h2>📚 Formats Supportés</h2>
     
-    <!-- Format JSON -->
-    <div style="margin-top: 2rem;">
-        <h3 style="color: var(--accent);">Format JSON</h3>
-        <p style="color: var(--text-gray); margin-bottom: 1rem;">
-            Un objet ou un tableau d'objets avec les champs suivants :
-        </p>
-        <pre style="background: var(--bg-darker); padding: 1rem; border-radius: 10px; overflow-x: auto; color: var(--text-gray);"><code>[
-  {
-    "source_ip": "192.168.1.100",
-    "event_type": "auth_failure",
-    "failed_attempts": 8,
-    "timestamp": "2025-12-12T10:30:00Z"
-  },
-  {
-    "source_ip": "10.0.0.50",
-    "event_type": "port_scan",
-    "ports_scanned": [22, 80, 443, 8080],
-    "timestamp": "2025-12-12T11:00:00Z"
-  }
-]</code></pre>
-    </div>
-    
-    <!-- Format CSV -->
-    <div style="margin-top: 2rem;">
-        <h3 style="color: var(--accent);">Format CSV</h3>
-        <p style="color: var(--text-gray); margin-bottom: 1rem;">
-            Fichier CSV avec header et les colonnes suivantes :
-        </p>
-        <pre style="background: var(--bg-darker); padding: 1rem; border-radius: 10px; overflow-x: auto; color: var(--text-gray);"><code>source_ip,event_type,failed_attempts,severity
-192.168.1.100,auth_failure,8,high
-10.0.0.50,port_scan,0,medium
-203.0.113.45,suspicious_ip,0,critical</code></pre>
-    </div>
-    
-    <!-- Règles de détection -->
-    <div style="margin-top: 2rem; background: var(--bg-darker); padding: 1.5rem; border-radius: 10px;">
-        <h3 style="color: var(--primary);">🔍 Règles de Détection Automatique</h3>
-        <ul style="color: var(--text-gray); margin-top: 1rem; line-height: 2;">
-            <li><strong>Échecs d'authentification :</strong> ≥ 5 tentatives échouées → Incident créé (criticité: medium/high)</li>
-            <li><strong>Scan de ports :</strong> > 10 ports scannés → Incident créé (criticité: high)</li>
-            <li><strong>IP suspecte :</strong> Toute activité inhabituelle → Incident créé (criticité: selon contexte)</li>
+    <div class="info-box" style="margin-top: 2rem;">
+        <h4>
+            <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            Expected JSON Format
+        </h4>
+        <ul>
+            <li>Array of security events</li>
+            <li>Each event must include: event_type, source_ip, severity, description</li>
+            <li>Supported event types: ssh_bruteforce, port_scan, web_attack, sql_injection, etc.</li>
+            <li>Playbooks will be automatically triggered based on event types</li>
         </ul>
-        <p style="color: var(--accent); margin-top: 1rem;">
-            ⚡ Les playbooks correspondants seront déclenchés automatiquement !
-        </p>
-    </div>
-</div>
-
-<!-- Exemples de fichiers -->
-<div class="card" style="max-width: 900px; margin: 2rem auto;">
-    <h2>📂 Fichiers d'Exemple</h2>
-    <p style="color: var(--text-gray); margin-bottom: 1.5rem;">
-        Téléchargez ces exemples pour tester l'import :
-    </p>
-    
-    <div class="grid grid-2">
-        <div style="background: var(--bg-darker); padding: 1.5rem; border-radius: 10px; text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
-            <h4 style="color: var(--text-light); margin-bottom: 0.5rem;">example_logs.json</h4>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
-                10 incidents simulés en JSON
-            </p>
-            <button onclick="downloadJSON()" class="btn btn-accent">
-                ⬇️ Télécharger JSON
-            </button>
-        </div>
-        
-        <div style="background: var(--bg-darker); padding: 1.5rem; border-radius: 10px; text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
-            <h4 style="color: var(--text-light); margin-bottom: 0.5rem;">example_logs.csv</h4>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
-                10 incidents simulés en CSV
-            </p>
-            <button onclick="downloadCSV()" class="btn btn-accent">
-                ⬇️ Télécharger CSV
-            </button>
-        </div>
     </div>
 </div>
 
 <script>
-function downloadJSON() {
-    const data = [
-        {"source_ip": "192.168.1.100", "event_type": "auth_failure", "failed_attempts": 8, "severity": "high"},
-        {"source_ip": "10.0.0.50", "event_type": "port_scan", "ports_scanned": [22, 80, 443, 8080, 3306, 5432, 6379, 27017, 9200, 5601, 3000], "severity": "high"},
-        {"source_ip": "203.0.113.45", "event_type": "suspicious_ip", "severity": "critical"},
-        {"source_ip": "198.51.100.78", "event_type": "auth_failure", "failed_attempts": 12, "severity": "critical"},
-        {"source_ip": "172.16.0.99", "event_type": "port_scan", "ports_scanned": [21, 22, 23, 25, 80, 110, 143, 443, 993, 995, 3389, 8080], "severity": "high"}
-    ];
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const fileSelected = document.getElementById('fileSelected');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+const removeBtn = document.getElementById('removeFile');
+const submitBtn = document.getElementById('submitBtn');
+
+// Click to browse
+dropZone.addEventListener('click', () => {
+    fileInput.click();
+});
+
+// Drag and drop
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('dragover');
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
     
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'example_logs.json';
-    a.click();
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        fileInput.files = files;
+        displayFile(files[0]);
+    }
+});
+
+// File selection
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        displayFile(e.target.files[0]);
+    }
+});
+
+// Display selected file
+function displayFile(file) {
+    fileName.textContent = file.name;
+    fileSize.textContent = formatFileSize(file.size);
+    fileSelected.style.display = 'flex';
+    dropZone.style.display = 'none';
+    submitBtn.disabled = false;
 }
 
-function downloadCSV() {
-    const csv = `source_ip,event_type,failed_attempts,severity
-192.168.1.100,auth_failure,8,high
-10.0.0.50,port_scan,0,high
-203.0.113.45,suspicious_ip,0,critical
-198.51.100.78,auth_failure,12,critical
-172.16.0.99,port_scan,0,high`;
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'example_logs.csv';
-    a.click();
+// Remove file
+removeBtn.addEventListener('click', () => {
+    fileInput.value = '';
+    fileSelected.style.display = 'none';
+    dropZone.style.display = 'block';
+    submitBtn.disabled = true;
+});
+
+// Format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
+
+// Form submission
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span>Processing...</span>';
+});
 </script>
+
 {% endblock %}

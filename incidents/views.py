@@ -12,10 +12,19 @@ from datetime import timedelta
 
 @login_required
 def incident_list(request):
+    """Liste des incidents avec statistiques"""
     incidents = Incident.objects.all().order_by('-detected_at')
+    
+    # Calcul des statistiques
+    total_incidents = incidents.count()
+    active_incidents = incidents.filter(status__in=['new', 'in_progress']).count()
+    critical_incidents = incidents.filter(severity='critical').count()
+    
     context = {
         'incidents': incidents,
-        'total_count': Incident.objects.count(),
+        'total_incidents': total_incidents,
+        'active_incidents': active_incidents,
+        'critical_incidents': critical_incidents,
     }
     return render(request, 'incidents/list.html', context)
 
@@ -40,11 +49,91 @@ def incident_create(request):
             incident = form.save(commit=False)
             incident.assigned_to = request.user
             incident.save()
-            messages.success(request, f'✅ Incident créé !')
+            messages.success(request, f'✅ Incident created successfully!')
             return redirect('incidents:detail', pk=incident.pk)
     else:
         form = IncidentForm()
     return render(request, 'incidents/create.html', {'form': form})
+
+@login_required
+def incident_import(request):
+    """
+    Page d'import de fichiers JSON (GET)
+    """
+    if request.method == 'GET':
+        return render(request, 'incidents/import.html')
+    
+    # POST - traiter l'upload
+    if request.method == 'POST':
+        try:
+            if 'file' not in request.FILES:
+                messages.error(request, '❌ No file uploaded')
+                return redirect('incidents:import')
+            
+            json_file = request.FILES['file']
+            
+            # Lire et parser le JSON
+            try:
+                data = json.load(json_file)
+            except json.JSONDecodeError:
+                messages.error(request, '❌ Invalid JSON file')
+                return redirect('incidents:import')
+            
+            # Si c'est une liste directe d'événements
+            if isinstance(data, list):
+                events = data
+            # Si c'est un dict avec une clé 'events'
+            elif isinstance(data, dict) and 'events' in data:
+                events = data['events']
+            else:
+                messages.error(request, '❌ Invalid JSON structure')
+                return redirect('incidents:import')
+            
+            incidents_created = 0
+            playbooks_triggered = 0
+            
+            from playbooks.models import Playbook
+            from playbooks.tasks import execute_playbook_async
+            
+            for event in events:
+                event_type = event.get('event_type', 'suspicious_ip')
+                source_ip = event.get('source_ip', '')
+                severity = event.get('severity', 'medium')
+                description = event.get('description', 'Security event detected')
+                
+                # Créer l'incident
+                incident = Incident.objects.create(
+                    title=f"{event_type.replace('_', ' ').title()} - {source_ip}",
+                    description=description,
+                    incident_type=event_type,
+                    severity=severity,
+                    source_ip=source_ip,
+                    target_ip=event.get('destination_ip', '192.168.163.135'),
+                    status='new',
+                    raw_log=event.get('details', {})
+                )
+                
+                incidents_created += 1
+                
+                # Déclencher les playbooks correspondants
+                playbooks = Playbook.objects.filter(
+                    trigger=event_type,
+                    is_active=True
+                )
+                
+                for playbook in playbooks:
+                    execute_playbook_async.delay(playbook.id, incident.id)
+                    playbooks_triggered += 1
+            
+            messages.success(
+                request, 
+                f'✅ {incidents_created} incidents imported, {playbooks_triggered} playbooks triggered!'
+            )
+            return redirect('incidents:list')
+            
+        except Exception as e:
+            messages.error(request, f'❌ Error: {str(e)}')
+            return redirect('incidents:import')
 
 @login_required
 def incident_simulate(request):
@@ -64,7 +153,7 @@ def incident_simulate(request):
         
         title = type_titles.get(incident_type, 'Security Incident')
         if not description:
-            description = f"Simulation: {title} depuis {source_ip}"
+            description = f"Simulation: {title} from {source_ip}"
         
         incident = Incident.objects.create(
             title=title,
@@ -76,7 +165,19 @@ def incident_simulate(request):
             assigned_to=request.user
         )
         
-        messages.success(request, f'✅ Incident #{incident.id} créé !')
+        # Déclencher playbooks automatiques
+        from playbooks.models import Playbook
+        from playbooks.tasks import execute_playbook_async
+        
+        playbooks = Playbook.objects.filter(
+            trigger=incident_type,
+            is_active=True
+        )
+        
+        for playbook in playbooks:
+            execute_playbook_async.delay(playbook.id, incident.id)
+        
+        messages.success(request, f'✅ Incident #{incident.id} created and playbooks triggered!')
         return redirect('incidents:detail', pk=incident.pk)
     
     context = {
@@ -93,7 +194,7 @@ def import_events_api(request):
     POST /api/incidents/import/
     """
     print("\n" + "="*70)
-    print("🔔 API: Réception événements agent")
+    print("🔔 API: Receiving events from security agent")
     print("="*70)
     
     try:
@@ -101,11 +202,15 @@ def import_events_api(request):
         events = data.get('events', [])
         
         if not events:
-            print("⚠️ Aucun événement")
+            print("⚠️ No events received")
             return JsonResponse({'status': 'error', 'message': 'No events'}, status=400)
         
-        print(f"📦 {len(events)} événement(s) reçu(s)")
+        print(f"📦 {len(events)} event(s) received")
         created_count = 0
+        playbooks_triggered = 0
+        
+        from playbooks.models import Playbook
+        from playbooks.tasks import execute_playbook_async
         
         for event in events:
             event_type = event.get('event_type', 'suspicious_ip')
@@ -113,7 +218,7 @@ def import_events_api(request):
             severity = event.get('severity', 'medium')
             description = event.get('description', 'Security event')
             
-            print(f"\n  📌 Type: {event_type} | IP: {source_ip} | Sévérité: {severity}")
+            print(f"\n  📌 Type: {event_type} | IP: {source_ip} | Severity: {severity}")
             
             # Dédupliquer (5 minutes)
             recent = timezone.now() - timedelta(minutes=5)
@@ -122,7 +227,7 @@ def import_events_api(request):
                 incident_type=event_type,
                 detected_at__gte=recent
             ).exists():
-                print(f"  ℹ️ Incident similaire existe déjà")
+                print(f"  ℹ️ Similar incident already exists")
                 continue
             
             # Créer incident
@@ -138,22 +243,34 @@ def import_events_api(request):
             )
             
             created_count += 1
-            print(f"  ✅ Incident créé (ID: {incident.id})")
+            print(f"  ✅ Incident created (ID: {incident.id})")
+            
+            # Déclencher playbooks automatiques
+            playbooks = Playbook.objects.filter(
+                trigger=event_type,
+                is_active=True
+            )
+            
+            for playbook in playbooks:
+                execute_playbook_async.delay(playbook.id, incident.id)
+                playbooks_triggered += 1
+                print(f"  ⚡ Playbook triggered: {playbook.name}")
         
-        print(f"\n✅ Total: {created_count} incident(s) créé(s)")
+        print(f"\n✅ Total: {created_count} incident(s) created, {playbooks_triggered} playbooks triggered")
         print("="*70 + "\n")
         
         return JsonResponse({
             'status': 'success',
-            'incidents_created': created_count
+            'incidents_created': created_count,
+            'playbooks_triggered': playbooks_triggered
         }, status=201)
     
     except json.JSONDecodeError:
-        print("❌ JSON invalide")
+        print("❌ Invalid JSON")
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
     
     except Exception as e:
-        print(f"❌ Erreur: {e}")
+        print(f"❌ Error: {e}")
         import traceback
         traceback.print_exc()
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

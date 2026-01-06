@@ -1,0 +1,11 @@
+[
+  {
+    "timestamp": "2026-01-05T14:42:55.624529Z",
+    "event_type": "ddos_attack",
+    "source_ip": "192.168.163.142",
+    "destination_ip": "192.168.163.135",
+    "severity": "critical",
+    "description": "DDoS 23 connexions depuis 192.168.163.142",
+    "details": {}
+  }
+]

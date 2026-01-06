@@ -1,119 +1,69 @@
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import datetime
+
 
 class Playbook(models.Model):
-    """
-    Playbook : Ensemble d'actions automatisées pour répondre à un incident
-    """
     TRIGGER_CHOICES = [
-        ('ssh_bruteforce', 'SSH Bruteforce Attack'),
-        ('port_scan', 'Port Scanning'),
-        ('web_attack', 'Web Application Attack'),
-        ('sql_injection', 'SQL Injection'),
-        ('xss', 'Cross-Site Scripting (XSS)'),
-        ('lfi', 'Local File Inclusion (LFI)'),
-        ('command_injection', 'Command Injection'),
-        ('ddos_attack', 'DDoS Attack'),
-        ('malware_c2', 'Malware C2 Communication'),
-        ('suspicious_ip', 'Suspicious IP Activity'),
-        ('auth_failure', 'Authentication Failure'),
+        ('ssh_bruteforce', 'SSH Bruteforce'),
+        ('port_scan', 'Port Scan'),
+        ('web_attack', 'Web Attack'),
+        ('ddos_attack', 'DDoS'),
+        ('suspicious_ip', 'Suspicious IP'),
     ]
-    
-    name = models.CharField(max_length=200, verbose_name="Nom du playbook")
-    description = models.TextField(verbose_name="Description")
-    trigger = models.CharField(
-        max_length=50, 
-        choices=TRIGGER_CHOICES,
-        verbose_name="Déclencheur"
-    )
-    is_active = models.BooleanField(default=True, verbose_name="Actif")
-    created_by = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE,
-        related_name='playbooks'
-    )
+
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    trigger = models.CharField(max_length=50, choices=TRIGGER_CHOICES)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    execution_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    execution_count = models.IntegerField(default=0, verbose_name="Nombre d'exécutions")
-    
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = "Playbook"
-        verbose_name_plural = "Playbooks"
-    
+
     def __str__(self):
-        return f"{self.name} ({'Actif' if self.is_active else 'Inactif'})"
+        return self.name
 
 
 class Action(models.Model):
-    """
-    Action : Une action spécifique dans un playbook
-    """
     ACTION_TYPES = [
-        ('block_ip', 'Bloquer IP'),
-        ('isolate_host', 'Isoler Machine Compromise'),
-        ('scan_antivirus', 'Lancer Scan Antivirus'),
-        ('collect_logs', 'Collecter Logs Forensiques'),
-        ('reset_password', 'Réinitialiser Mot de Passe'),
-        ('quarantine_file', 'Mettre Fichier en Quarantaine'),
-        ('send_email', 'Envoyer Notification Email'),
-        ('enrich_threat', 'Enrichir avec Threat Intelligence'),
-        ('create_ticket', 'Créer Ticket Incident'),
+        ('block_ip', 'Block IP'),
+        ('send_email', 'Send Email'),
+        ('enrich_threat', 'Threat Intel'),
+        ('create_ticket', 'Create Ticket'),
     ]
-    
+
     playbook = models.ForeignKey(
         Playbook,
-        on_delete=models.CASCADE,
-        related_name='actions'
+        related_name='actions',
+        on_delete=models.CASCADE
     )
-    action_type = models.CharField(
-        max_length=50,
-        choices=ACTION_TYPES,
-        verbose_name="Type d'action"
-    )
-    order = models.IntegerField(
-        default=0,
-        verbose_name="Ordre d'exécution"
-    )
-    parameters = models.JSONField(
-        default=dict,
-        blank=True,
-        verbose_name="Paramètres de l'action"
-    )
-    is_active = models.BooleanField(default=True, verbose_name="Active")
-    
-    class Meta:
-        ordering = ['playbook', 'order']
-        verbose_name = "Action"
-        verbose_name_plural = "Actions"
-    
+    action_type = models.CharField(max_length=50, choices=ACTION_TYPES)
+    order = models.IntegerField(default=0)
+    parameters = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+
     def __str__(self):
-        return f"{self.playbook.name} - {self.get_action_type_display()} (#{self.order})"
+        return f"{self.playbook.name} - {self.action_type}"
 
 
 class PlaybookExecution(models.Model):
-    """
-    Historique d'exécution des playbooks
-    """
     STATUS_CHOICES = [
-        ('pending', 'En attente'),
-        ('running', 'En cours'),
-        ('success', 'Succès'),
-        ('failed', 'Échec'),
-        ('partial', 'Partiel'),
+        ('pending', 'Pending'),
+        ('running', 'Running'),
+        ('success', 'Success'),
+        ('failed', 'Failed'),
+        ('partial', 'Partial'),
     ]
-    
+
     playbook = models.ForeignKey(
         Playbook,
-        on_delete=models.CASCADE,
-        related_name='executions'
+        related_name='executions',
+        on_delete=models.CASCADE
     )
     incident = models.ForeignKey(
         'incidents.Incident',
-        on_delete=models.CASCADE,
         related_name='playbook_executions',
-        null=True,
-        blank=True
+        on_delete=models.CASCADE
     )
     status = models.CharField(
         max_length=20,
@@ -122,26 +72,13 @@ class PlaybookExecution(models.Model):
     )
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
-    logs = models.JSONField(
-        default=list,
-        verbose_name="Logs d'exécution"
-    )
+    logs = models.JSONField(default=list)
     actions_executed = models.IntegerField(default=0)
     actions_failed = models.IntegerField(default=0)
-    
-    class Meta:
-        ordering = ['-started_at']
-        verbose_name = "Exécution de playbook"
-        verbose_name_plural = "Exécutions de playbooks"
-    
-    def __str__(self):
-        return f"{self.playbook.name} - {self.status} ({self.started_at})"
-    
+
     def add_log(self, message, level='info'):
-        """Ajouter une entrée au log"""
-        from datetime import datetime
         self.logs.append({
-            'timestamp': datetime.now().isoformat(),
+            'time': datetime.now().isoformat(),
             'level': level,
             'message': message
         })

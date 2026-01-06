@@ -2,129 +2,419 @@
 
 {% block title %}Incidents - SecureFlow{% endblock %}
 
+{% block extra_css %}
+<style>
+    .page-header {
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid rgba(207, 9, 6, 0.2);
+    }
+    
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .title-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 30px var(--primary-glow);
+    }
+    
+    .title-icon svg {
+        width: 28px;
+        height: 28px;
+        fill: white;
+    }
+    
+    .page-subtitle {
+        color: var(--text-gray);
+        font-size: 1.1rem;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .stat-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+    
+    .stat-card-modern {
+        background: rgba(26, 26, 46, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid rgba(207, 9, 6, 0.2);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+    }
+    
+    .stat-card-modern.red::before {
+        background: linear-gradient(90deg, #cf0906, #ff2420);
+    }
+    
+    .stat-card-modern.orange::before {
+        background: linear-gradient(90deg, #ff8800, #ffa500);
+    }
+    
+    .stat-card-modern.pink::before {
+        background: linear-gradient(90deg, #ff006e, #ff4d94);
+    }
+    
+    .stat-card-modern:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(207, 9, 6, 0.3);
+    }
+    
+    .stat-value {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: var(--text-gray);
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+    
+    .filters-container {
+        background: rgba(26, 26, 46, 0.6);
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-bottom: 2.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+    
+    .filter-group label {
+        display: block;
+        margin-bottom: 0.8rem;
+        color: var(--text-gray);
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .filter-group select {
+        width: 100%;
+        padding: 12px 15px;
+        background: var(--bg-input);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        color: var(--text-light);
+        font-size: 1rem;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .filter-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 15px var(--primary-glow);
+    }
+    
+    .incidents-table {
+        background: rgba(26, 26, 46, 0.6);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid rgba(207, 9, 6, 0.2);
+    }
+    
+    .incidents-table::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    thead {
+        background: rgba(207, 9, 6, 0.1);
+    }
+    
+    thead th {
+        padding: 1.5rem 1.2rem;
+        text-align: left;
+        color: var(--text-light);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(207, 9, 6, 0.3);
+    }
+    
+    tbody tr {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+    }
+    
+    tbody tr:hover {
+        background: rgba(207, 9, 6, 0.05);
+        transform: translateX(5px);
+    }
+    
+    tbody td {
+        padding: 1.2rem;
+        color: var(--text-light);
+    }
+    
+    .incident-link {
+        color: var(--primary-light);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s;
+    }
+    
+    .incident-link:hover {
+        color: var(--primary);
+        text-decoration: underline;
+    }
+    
+    .ip-code {
+        background: var(--bg-dark);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.95rem;
+        color: var(--primary-light);
+        border: 1px solid rgba(207, 9, 6, 0.3);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-gray);
+    }
+    
+    .empty-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 2rem;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px var(--primary-glow);
+    }
+    
+    .empty-icon svg {
+        width: 50px;
+        height: 50px;
+        fill: white;
+    }
+    
+    .empty-title {
+        font-size: 1.8rem;
+        color: var(--text-light);
+        margin-bottom: 1rem;
+    }
+    
+    .empty-text {
+        font-size: 1.1rem;
+        color: var(--text-gray);
+        margin-bottom: 2rem;
+    }
+    
+    @media (max-width: 1024px) {
+        .filters-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <div>
-            <h1>🚨 Gestion des Incidents</h1>
-            <p style="color: var(--text-gray); margin-top: 0.5rem;">
-                Détection et réponse automatisée aux menaces
-            </p>
-        </div>
-        <div style="display: flex; gap: 0.5rem;">
-            <a href="{% url 'incidents:create' %}" class="btn btn-primary">
-                + Créer un Incident
-            </a>
-            <a href="{% url 'incidents:import' %}" class="btn btn-accent">
-                📥 Importer des Logs
-            </a>
-            <a href="{% url 'incidents:simulate' %}" class="btn btn-success">
-                🎭 Simuler un Test
-            </a>
-        </div>
+<!-- Page Header -->
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h1 class="page-title">
+            <div class="title-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 5.99L19.53 19H4.47L12 5.99M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z"/>
+                </svg>
+            </div>
+            Incident Management
+        </h1>
+        <p class="page-subtitle">Automated threat detection and response</p>
+    </div>
+    <div class="action-buttons">
+        <a href="{% url 'incidents:create' %}" class="btn btn-primary">
+            + Create Incident
+        </a>
+        <a href="{% url 'incidents:import' %}" class="btn btn-accent">
+            <svg style="width: 18px; height: 18px; fill: currentColor; margin-right: 8px;" viewBox="0 0 24 24">
+                <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+            </svg>
+            Import Logs
+        </a>
+        <a href="{% url 'incidents:simulate' %}" class="btn btn-success">
+            <svg style="width: 18px; height: 18px; fill: currentColor; margin-right: 8px;" viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            Simulate Test
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stat-cards-grid">
+    <div class="stat-card-modern red">
+        <div class="stat-value">{{ total_incidents|default:0 }}</div>
+        <div class="stat-label">Total Incidents</div>
     </div>
     
-    <!-- Statistiques -->
-    <div class="grid grid-3" style="margin-bottom: 2rem;">
-        <div class="stat-card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">
-            <h3>{{ total_incidents }}</h3>
-            <p>Total Incidents</p>
-        </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, var(--warning) 0%, #ff8800 100%);">
-            <h3>{{ active_incidents }}</h3>
-            <p>Incidents Actifs</p>
-        </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, var(--danger) 0%, #c20055 100%);">
-            <h3>{{ critical_incidents }}</h3>
-            <p>Incidents Critiques</p>
-        </div>
+    <div class="stat-card-modern orange">
+        <div class="stat-value">{{ active_incidents|default:0 }}</div>
+        <div class="stat-label">Active Incidents</div>
     </div>
     
-    <!-- Filtres -->
-    <div style="background: var(--bg-darker); padding: 1rem; border-radius: 10px; margin-bottom: 2rem;">
-        <form method="get" style="display: flex; gap: 1rem; align-items: end;">
-            <div style="flex: 1;">
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-gray); font-size: 0.9rem;">Statut</label>
-                <select name="status" class="form-control" onchange="this.form.submit()">
-                    <option value="">Tous</option>
-                    <option value="new">Nouveau</option>
-                    <option value="in_progress">En cours</option>
-                    <option value="resolved">Résolu</option>
+    <div class="stat-card-modern pink">
+        <div class="stat-value">{{ critical_incidents|default:0 }}</div>
+        <div class="stat-label">Critical Threats</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-container">
+    <form method="get">
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label>STATUS</label>
+                <select name="status" onchange="this.form.submit()">
+                    <option value="">All</option>
+                    <option value="new">New</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
                 </select>
             </div>
-            <div style="flex: 1;">
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-gray); font-size: 0.9rem;">Criticité</label>
-                <select name="severity" class="form-control" onchange="this.form.submit()">
-                    <option value="">Toutes</option>
+            
+            <div class="filter-group">
+                <label>SEVERITY</label>
+                <select name="severity" onchange="this.form.submit()">
+                    <option value="">All</option>
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
                     <option value="critical">Critical</option>
                 </select>
             </div>
-            <div style="flex: 1;">
-                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-gray); font-size: 0.9rem;">Type</label>
-                <select name="type" class="form-control" onchange="this.form.submit()">
-                    <option value="">Tous</option>
-                    <option value="suspicious_ip">IP Suspecte</option>
-                    <option value="auth_failure">Échecs Auth</option>
-                    <option value="port_scan">Scan Ports</option>
+            
+            <div class="filter-group">
+                <label>TYPE</label>
+                <select name="type" onchange="this.form.submit()">
+                    <option value="">All</option>
+                    <option value="suspicious_ip">Suspicious IP</option>
+                    <option value="auth_failure">Auth Failure</option>
+                    <option value="port_scan">Port Scan</option>
+                    <option value="ssh_bruteforce">SSH Bruteforce</option>
+                    <option value="web_attack">Web Attack</option>
+                    <option value="ddos_attack">DDoS Attack</option>
                 </select>
             </div>
-        </form>
-    </div>
-    
-    <!-- Liste des incidents -->
-    {% if incidents %}
+        </div>
+    </form>
+</div>
+
+<!-- Incidents Table -->
+{% if incidents %}
+<div class="incidents-table">
     <table>
         <thead>
             <tr>
-                <th>Titre</th>
-                <th>Type</th>
-                <th>IP Source</th>
-                <th>Criticité</th>
-                <th>Statut</th>
-                <th>Playbook</th>
-                <th>Date</th>
+                <th>TITLE</th>
+                <th>TYPE</th>
+                <th>SOURCE IP</th>
+                <th>SEVERITY</th>
+                <th>STATUS</th>
+                <th>PLAYBOOK</th>
+                <th>DATE</th>
             </tr>
         </thead>
         <tbody>
             {% for incident in incidents %}
             <tr>
                 <td>
-                    <a href="{% url 'incidents:detail' incident.id %}" style="color: var(--accent); text-decoration: none; font-weight: 600;">
-                        {{ incident.title }}
+                    <a href="{% url 'incidents:detail' incident.id %}" class="incident-link">
+                        {{ incident.title|truncatewords:8 }}
                     </a>
                 </td>
                 <td>{{ incident.get_incident_type_display }}</td>
-                <td><code style="background: var(--bg-darker); padding: 0.25rem 0.5rem; border-radius: 5px;">{{ incident.source_ip|default:"-" }}</code></td>
+                <td>
+                    {% if incident.source_ip %}
+                        <span class="ip-code">{{ incident.source_ip }}</span>
+                    {% else %}
+                        <span style="color: var(--text-gray);">-</span>
+                    {% endif %}
+                </td>
                 <td>
                     {% if incident.severity == 'critical' %}
-                        <span class="badge badge-danger">🔴 {{ incident.get_severity_display }}</span>
+                        <span class="badge badge-danger">Critical</span>
                     {% elif incident.severity == 'high' %}
-                        <span class="badge badge-warning">🟠 {{ incident.get_severity_display }}</span>
+                        <span class="badge badge-warning">High</span>
                     {% elif incident.severity == 'medium' %}
-                        <span class="badge badge-info">🟡 {{ incident.get_severity_display }}</span>
+                        <span class="badge badge-info">Medium</span>
                     {% else %}
-                        <span class="badge badge-success">🟢 {{ incident.get_severity_display }}</span>
+                        <span class="badge badge-success">Low</span>
                     {% endif %}
                 </td>
                 <td>
                     {% if incident.status == 'new' %}
-                        <span class="badge badge-warning">Nouveau</span>
+                        <span class="badge badge-warning">New</span>
                     {% elif incident.status == 'in_progress' %}
-                        <span class="badge badge-info">En cours</span>
+                        <span class="badge badge-info">In Progress</span>
                     {% elif incident.status == 'resolved' %}
-                        <span class="badge badge-success">Résolu</span>
+                        <span class="badge badge-success">Resolved</span>
                     {% else %}
                         <span class="badge">{{ incident.get_status_display }}</span>
                     {% endif %}
                 </td>
                 <td>
                     {% if incident.auto_playbook_triggered %}
-                        <span class="badge badge-success">✓ Déclenché</span>
+                        <span class="badge badge-success">Triggered</span>
                     {% else %}
-                        <span class="badge badge-danger">✗ Non</span>
+                        <span class="badge badge-danger">No</span>
                     {% endif %}
                 </td>
                 <td>{{ incident.detected_at|date:"d/m/Y H:i" }}</td>
@@ -132,20 +422,26 @@
             {% endfor %}
         </tbody>
     </table>
-    {% else %}
-    <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
-        <div style="font-size: 4rem; margin-bottom: 1rem;">🚨</div>
-        <h3 style="color: var(--text-gray); margin-bottom: 1rem;">Aucun incident détecté</h3>
-        <p style="margin-bottom: 2rem;">Importez des logs ou simulez un incident de test.</p>
-        <div style="display: flex; gap: 1rem; justify-content: center;">
-            <a href="{% url 'incidents:import' %}" class="btn btn-accent">
-                📥 Importer des Logs
-            </a>
-            <a href="{% url 'incidents:simulate' %}" class="btn btn-success">
-                🎭 Simuler un Test
-            </a>
-        </div>
-    </div>
-    {% endif %}
 </div>
+{% else %}
+<!-- Empty State -->
+<div class="empty-state">
+    <div class="empty-icon">
+        <svg viewBox="0 0 24 24">
+            <path d="M12 5.99L19.53 19H4.47L12 5.99M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z"/>
+        </svg>
+    </div>
+    <h3 class="empty-title">No Incidents Detected</h3>
+    <p class="empty-text">Import security logs or simulate a test incident to get started.</p>
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+        <a href="{% url 'incidents:import' %}" class="btn btn-accent">
+            Import Logs
+        </a>
+        <a href="{% url 'incidents:simulate' %}" class="btn btn-success">
+            Simulate Test
+        </a>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}

@@ -1,0 +1,651 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Settings - {{ user.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .settings-header {
+        margin-bottom: 3rem;
+    }
+
+    .settings-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+    }
+
+    .settings-header p {
+        color: var(--text-gray);
+        font-size: 1.1rem;
+    }
+
+    .settings-grid {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+    }
+
+    /* Sidebar Navigation */
+    .settings-nav {
+        position: sticky;
+        top: 100px;
+        height: fit-content;
+    }
+
+    .nav-section {
+        background: var(--bg-card);
+        border-radius: 15px;
+        padding: 1rem;
+        border: 1px solid var(--border);
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        color: var(--text-gray);
+        text-decoration: none;
+        border-radius: 10px;
+        transition: var(--transition);
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .nav-item:hover {
+        background: rgba(207, 9, 6, 0.05);
+        color: var(--primary);
+    }
+
+    .nav-item.active {
+        background: rgba(207, 9, 6, 0.1);
+        color: var(--primary);
+        border-left: 3px solid var(--primary);
+    }
+
+    .nav-item i {
+        width: 20px;
+        text-align: center;
+    }
+
+    /* Settings Sections */
+    .settings-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .settings-section {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid var(--border);
+        display: none;
+    }
+
+    .settings-section.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .section-header i {
+        font-size: 1.5rem;
+        color: var(--primary);
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+        color: var(--text-light);
+        margin: 0;
+    }
+
+    /* Avatar Upload */
+    .avatar-upload {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        padding: 2rem;
+        background: var(--bg-darker);
+        border-radius: 15px;
+        margin-bottom: 2rem;
+    }
+
+    .avatar-preview {
+        position: relative;
+    }
+
+    .avatar-image {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: white;
+        font-weight: 700;
+        box-shadow: 0 10px 30px var(--primary-glow);
+        object-fit: cover;
+    }
+
+    .avatar-image img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .avatar-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+    .file-input-wrapper input[type=file] {
+        position: absolute;
+        left: -9999px;
+    }
+
+    .file-input-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+
+    .file-input-label:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px var(--primary-glow);
+    }
+
+    .delete-avatar-btn {
+        padding: 0.75rem 1.5rem;
+        background: var(--bg-light);
+        color: var(--text-light);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+
+    .delete-avatar-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    /* Form Styles */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-light);
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        background: var(--bg-darker);
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        color: var(--text-light);
+        font-size: 1rem;
+        transition: var(--transition);
+        font-family: 'Inter', sans-serif;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .form-control::placeholder {
+        color: var(--text-muted);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+
+    /* Toggle Switch */
+    .toggle-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: var(--bg-darker);
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .toggle-info {
+        flex: 1;
+    }
+
+    .toggle-label {
+        font-weight: 600;
+        color: var(--text-light);
+        margin-bottom: 0.25rem;
+    }
+
+    .toggle-description {
+        font-size: 0.85rem;
+        color: var(--text-gray);
+    }
+
+    .toggle-switch {
+        position: relative;
+        width: 50px;
+        height: 26px;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--bg-light);
+        border: 2px solid var(--border);
+        transition: var(--transition);
+        border-radius: 34px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 2px;
+        bottom: 2px;
+        background: white;
+        transition: var(--transition);
+        border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+    input:checked + .toggle-slider:before {
+        transform: translateX(24px);
+    }
+
+    /* Action Buttons */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn-save {
+        flex: 1;
+        padding: 1rem;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px var(--primary-glow);
+    }
+
+    .btn-cancel {
+        padding: 1rem 2rem;
+        background: var(--bg-light);
+        color: var(--text-light);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .btn-cancel:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    @media (max-width: 1024px) {
+        .settings-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .settings-nav {
+            position: static;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <div class="settings-header">
+        <h1><i class="fa-solid fa-gear"></i> Settings</h1>
+        <p>Manage your account settings and preferences</p>
+    </div>
+
+    <div class="settings-grid">
+        <!-- Sidebar Navigation -->
+        <div class="settings-nav">
+            <div class="nav-section">
+                <div class="nav-item active" data-section="profile">
+                    <i class="fa-solid fa-user"></i>
+                    <span>Profile</span>
+                </div>
+                <div class="nav-item" data-section="account">
+                    <i class="fa-solid fa-circle-user"></i>
+                    <span>Account</span>
+                </div>
+                <div class="nav-item" data-section="notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Notifications</span>
+                </div>
+                <div class="nav-item" data-section="appearance">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Appearance</span>
+                </div>
+                <div class="nav-item" data-section="security">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Security</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Content -->
+        <div class="settings-content">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Profile Section -->
+                <div class="settings-section active" id="profile-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-user"></i>
+                        <h2>Profile Information</h2>
+                    </div>
+
+                    <!-- Avatar Upload -->
+                    <div class="avatar-upload">
+                        <div class="avatar-preview">
+                            <div class="avatar-image">
+                                {% if user.profile.avatar %}
+                                    <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}">
+                                {% else %}
+                                    {{ user.username|slice:":1"|upper }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="avatar-actions">
+                            <div class="file-input-wrapper">
+                                {{ profile_form.avatar }}
+                                <label for="id_avatar" class="file-input-label">
+                                    <i class="fa-solid fa-upload"></i>
+                                    Upload Photo
+                                </label>
+                            </div>
+                            {% if user.profile.avatar %}
+                            <form method="post" action="{% url 'accounts:delete_avatar' %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="delete-avatar-btn">
+                                    <i class="fa-solid fa-trash"></i> Remove Photo
+                                </button>
+                            </form>
+                            {% endif %}
+                            <small style="color: var(--text-gray);">JPG, PNG max 2MB</small>
+                        </div>
+                    </div>
+
+                    <!-- Bio -->
+                    <div class="form-group">
+                        <label class="form-label">{{ profile_form.bio.label }}</label>
+                        {{ profile_form.bio }}
+                    </div>
+
+                    <!-- Profile Fields Grid -->
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">{{ profile_form.job_title.label }}</label>
+                            {{ profile_form.job_title }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ profile_form.organization.label }}</label>
+                            {{ profile_form.organization }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ profile_form.phone.label }}</label>
+                            {{ profile_form.phone }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ profile_form.location.label }}</label>
+                            {{ profile_form.location }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Section -->
+                <div class="settings-section" id="account-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-circle-user"></i>
+                        <h2>Account Details</h2>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">{{ user_form.username.label }}</label>
+                            {{ user_form.username }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ user_form.email.label }}</label>
+                            {{ user_form.email }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ user_form.first_name.label }}</label>
+                            {{ user_form.first_name }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ user_form.last_name.label }}</label>
+                            {{ user_form.last_name }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div class="settings-section" id="notifications-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-bell"></i>
+                        <h2>Notification Preferences</h2>
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Email Notifications</div>
+                            <div class="toggle-description">Receive security alerts via email</div>
+                        </div>
+                        <label class="toggle-switch">
+                            {{ profile_form.email_notifications }}
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Critical Alerts Only</div>
+                            <div class="toggle-description">Only receive high-priority alerts</div>
+                        </div>
+                        <label class="toggle-switch">
+                            {{ profile_form.critical_alerts_only }}
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Daily Digest</div>
+                            <div class="toggle-description">Get a daily summary of incidents</div>
+                        </div>
+                        <label class="toggle-switch">
+                            {{ profile_form.daily_digest }}
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Appearance Section -->
+                <div class="settings-section" id="appearance-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-palette"></i>
+                        <h2>Appearance</h2>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">{{ profile_form.theme.label }}</label>
+                            {{ profile_form.theme }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ profile_form.language.label }}</label>
+                            {{ profile_form.language }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Section -->
+                <div class="settings-section" id="security-section">
+                    <div class="section-header">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <h2>Security Settings</h2>
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Two-Factor Authentication</div>
+                            <div class="toggle-description">Add an extra layer of security (Coming soon)</div>
+                        </div>
+                        <label class="toggle-switch">
+                            {{ profile_form.two_factor_enabled }}
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-info">
+                            <div class="toggle-label">Login Notifications</div>
+                            <div class="toggle-description">Get notified of new logins</div>
+                        </div>
+                        <label class="toggle-switch">
+                            {{ profile_form.login_notifications }}
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">
+                        <i class="fa-solid fa-save"></i> Save Changes
+                    </button>
+                    <a href="{% url 'accounts:profile' %}" class="btn-cancel">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Navigation between sections
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            // Remove active class from all
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+            
+            // Add active to clicked
+            this.classList.add('active');
+            const section = this.dataset.section;
+            document.getElementById(section + '-section').classList.add('active');
+        });
+    });
+
+    // Preview image before upload
+    document.getElementById('id_avatar').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const avatarImage = document.querySelector('.avatar-image');
+                avatarImage.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}

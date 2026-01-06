@@ -1,0 +1,11 @@
+[
+  {
+    "timestamp": "2026-01-05T15:00:15.015208Z",
+    "event_type": "ssh_bruteforce",
+    "source_ip": "192.168.163.142",
+    "destination_ip": "192.168.163.135",
+    "severity": "high",
+    "description": "SSH bruteforce depuis 192.168.163.142",
+    "details": {}
+  }
+]

@@ -2,55 +2,283 @@
 
 {% block title %}Playbooks - SecureFlow{% endblock %}
 
+{% block extra_css %}
+<style>
+    .page-header {
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid rgba(207, 9, 6, 0.2);
+    }
+    
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .title-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 30px var(--primary-glow);
+    }
+    
+    .title-icon svg {
+        width: 28px;
+        height: 28px;
+        fill: white;
+    }
+    
+    .page-subtitle {
+        color: var(--text-gray);
+        font-size: 1.1rem;
+    }
+    
+    .stat-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+    
+    .stat-card-modern {
+        background: rgba(26, 26, 46, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid rgba(207, 9, 6, 0.2);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+    }
+    
+    .stat-card-modern.red::before {
+        background: linear-gradient(90deg, #cf0906, #ff2420);
+    }
+    
+    .stat-card-modern.green::before {
+        background: linear-gradient(90deg, #00ff88, #00cc6f);
+    }
+    
+    .stat-card-modern.blue::before {
+        background: linear-gradient(90deg, #00d9ff, #00a8cc);
+    }
+    
+    .stat-card-modern:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(207, 9, 6, 0.3);
+    }
+    
+    .stat-value {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: var(--text-gray);
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+    
+    .playbooks-table {
+        background: rgba(26, 26, 46, 0.6);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid rgba(207, 9, 6, 0.2);
+        position: relative;
+    }
+    
+    .playbooks-table::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    thead {
+        background: rgba(207, 9, 6, 0.1);
+    }
+    
+    thead th {
+        padding: 1.5rem 1.2rem;
+        text-align: left;
+        color: var(--text-light);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(207, 9, 6, 0.3);
+    }
+    
+    tbody tr {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+    }
+    
+    tbody tr:hover {
+        background: rgba(207, 9, 6, 0.05);
+        transform: translateX(5px);
+    }
+    
+    tbody td {
+        padding: 1.2rem;
+        color: var(--text-light);
+    }
+    
+    .playbook-link {
+        color: var(--primary-light);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s;
+    }
+    
+    .playbook-link:hover {
+        color: var(--primary);
+        text-decoration: underline;
+    }
+    
+    .action-buttons-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .btn-icon {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-icon svg {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-gray);
+    }
+    
+    .empty-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 2rem;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px var(--primary-glow);
+    }
+    
+    .empty-icon svg {
+        width: 50px;
+        height: 50px;
+        fill: white;
+    }
+    
+    .empty-title {
+        font-size: 1.8rem;
+        color: var(--text-light);
+        margin-bottom: 1rem;
+    }
+    
+    .empty-text {
+        font-size: 1.1rem;
+        color: var(--text-gray);
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <div>
-            <h1>📚 Gestion des Playbooks</h1>
-            <p style="color: var(--text-gray); margin-top: 0.5rem;">
-                Automatisez vos réponses aux incidents de sécurité
-            </p>
-        </div>
-        <a href="{% url 'playbooks:create' %}" class="btn btn-primary">
-            + Créer un Playbook
-        </a>
+<!-- Page Header -->
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h1 class="page-title">
+            <div class="title-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
+                </svg>
+            </div>
+            Playbook Management
+        </h1>
+        <p class="page-subtitle">Automate your security incident responses</p>
+    </div>
+    <a href="{% url 'playbooks:create' %}" class="btn btn-primary">
+        + Create Playbook
+    </a>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stat-cards-grid">
+    <div class="stat-card-modern red">
+        <div class="stat-value">{{ total_playbooks|default:0 }}</div>
+        <div class="stat-label">Total Playbooks</div>
     </div>
     
-    <!-- Statistiques -->
-    <div class="grid grid-3" style="margin-bottom: 2rem;">
-        <div class="stat-card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">
-            <h3>{{ total_playbooks }}</h3>
-            <p>Total Playbooks</p>
-        </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, var(--success) 0%, #00a040 100%);">
-            <h3>{{ active_playbooks }}</h3>
-            <p>Playbooks Actifs</p>
-        </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);">
-            <h3>{{ total_playbooks|add:"-"|add:active_playbooks }}</h3>
-            <p>Playbooks Inactifs</p>
-        </div>
+    <div class="stat-card-modern green">
+        <div class="stat-value">{{ active_playbooks|default:0 }}</div>
+        <div class="stat-label">Active Playbooks</div>
     </div>
     
-    <!-- Liste des playbooks -->
-    {% if playbooks %}
+    <div class="stat-card-modern blue">
+        <div class="stat-value">0</div>
+        <div class="stat-label">Inactive Playbooks</div>
+    </div>
+</div>
+
+<!-- Playbooks Table -->
+{% if playbooks %}
+<div class="playbooks-table">
     <table>
         <thead>
             <tr>
-                <th>Nom</th>
-                <th>Déclencheur</th>
-                <th>Actions</th>
-                <th>Exécutions</th>
-                <th>Statut</th>
-                <th>Créé le</th>
-                <th>Options</th>
+                <th>NAME</th>
+                <th>TRIGGER</th>
+                <th>ACTIONS</th>
+                <th>EXECUTIONS</th>
+                <th>STATUS</th>
+                <th>CREATED</th>
+                <th>OPTIONS</th>
             </tr>
         </thead>
         <tbody>
             {% for playbook in playbooks %}
             <tr>
                 <td>
-                    <a href="{% url 'playbooks:detail' playbook.id %}" style="color: var(--accent); text-decoration: none; font-weight: 600;">
+                    <a href="{% url 'playbooks:detail' playbook.id %}" class="playbook-link">
                         {{ playbook.name }}
                     </a>
                 </td>
@@ -61,19 +289,32 @@
                 <td>{{ playbook.execution_count }}</td>
                 <td>
                     {% if playbook.is_active %}
-                        <span class="badge badge-success">✓ Actif</span>
+                        <span class="badge badge-success">Active</span>
                     {% else %}
-                        <span class="badge badge-danger">✗ Inactif</span>
+                        <span class="badge badge-danger">Inactive</span>
                     {% endif %}
                 </td>
                 <td>{{ playbook.created_at|date:"d/m/Y H:i" }}</td>
                 <td>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <a href="{% url 'playbooks:edit' playbook.id %}" class="btn btn-accent" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                            ✏️ Éditer
+                    <div class="action-buttons-group">
+                        <a href="{% url 'playbooks:edit' playbook.id %}" class="btn btn-accent btn-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                            </svg>
+                            Edit
                         </a>
-                        <a href="{% url 'playbooks:toggle' playbook.id %}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                            {% if playbook.is_active %}⏸️ Désactiver{% else %}▶️ Activer{% endif %}
+                        <a href="{% url 'playbooks:toggle' playbook.id %}" class="btn btn-primary btn-icon">
+                            {% if playbook.is_active %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                                </svg>
+                                Disable
+                            {% else %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                                Enable
+                            {% endif %}
                         </a>
                     </div>
                 </td>
@@ -81,15 +322,21 @@
             {% endfor %}
         </tbody>
     </table>
-    {% else %}
-    <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
-        <div style="font-size: 4rem; margin-bottom: 1rem;">📚</div>
-        <h3 style="color: var(--text-gray); margin-bottom: 1rem;">Aucun playbook créé</h3>
-        <p style="margin-bottom: 2rem;">Créez votre premier playbook pour automatiser vos réponses aux incidents.</p>
-        <a href="{% url 'playbooks:create' %}" class="btn btn-primary">
-            + Créer mon premier playbook
-        </a>
-    </div>
-    {% endif %}
 </div>
+{% else %}
+<!-- Empty State -->
+<div class="empty-state">
+    <div class="empty-icon">
+        <svg viewBox="0 0 24 24">
+            <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
+        </svg>
+    </div>
+    <h3 class="empty-title">No Playbooks Created</h3>
+    <p class="empty-text">Create your first playbook to automate incident responses.</p>
+    <a href="{% url 'playbooks:create' %}" class="btn btn-primary">
+        + Create First Playbook
+    </a>
+</div>
+{% endif %}
+
 {% endblock %}
